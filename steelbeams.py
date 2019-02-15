@@ -1,5 +1,6 @@
 # Program to design steel beams as per CSA S16
 import math
+from memberclasses import Beam
 
 print ("Welcome to the best design program ever")
 
@@ -38,8 +39,6 @@ def loadCombos( factoredLoads ):
 
     return (max(factoredLoads))
 
-wf = loadCombos( [] )
-
 def shearMoment( wf, l, connection ):
     if connection == 1: #Simple connection
         vMax = wf*l/2
@@ -60,8 +59,31 @@ def shearMoment( wf, l, connection ):
 
     return (vMax, mMax)
 
-(V, M) = shearMoment( wf, span, conType)
-print (V, M)
+def sizeMember(Vf, Mf, shapes, wf, l):
+    Fy = 350 #kPa
+    E = 200000#MPa
+    G = 77000#MPa
+    #Preliminary Sizing
+    for i in range(1, 282):
+        if Mf < Fy*shapes [119][i] & Fy*shapes [119][i] < Mf*1.1: #Zx col 119
+            mass = shapes[84][i]
+            index = i
 
-#def sizeMember(shear, moment, shapes):
-    #Do the code
+    #Get new factored weight including self weight of member
+    wf = wf + mass * 9.81
+    (Vf, Mf) = shearMoment( wf, span, conType )
+
+    beam = Beam()
+
+    w2=(4*Mf)/(Mf**2+4*Ma**2+7*Mb**2+4*Mc**2)**.5 #need to get moment distribution
+    Mu = (w2*math.pi()/l)*(E*shapes[122][index]*G*shapes[129][index]+((math.pi()*E)/l)**2*shapes[122][index]*shapes[130][index])**.5
+
+    if Mu > 0.67*Mp:
+        Mr = 1.15*.9*Mp*(1-(0.28*Mp)/Mu)
+        if Mr > Mp:
+            Mr = Mp
+    else:
+        Mr = 0.9 * Mu
+
+wf = loadCombos( [] )
+(V, M) = shearMoment( wf, span, conType)
