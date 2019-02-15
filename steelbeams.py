@@ -60,20 +60,26 @@ def shearMoment( wf, l, connection ):
     return (vMax, mMax)
 
 def sizeMember(Vf, Mf, shapes, wf, l):
-    Fy = 350 #kPa
+    Fy = 350 #MPa
     E = 200000#MPa
     G = 77000#MPa
+    potentials = []
+    weights = []
+    index = 0
     #Preliminary Sizing
     for i in range(1, 282):
-        if Mf < Fy*shapes [119][i] & Fy*shapes [119][i] < Mf*1.1: #Zx col 119
-            mass = shapes[84][i]
-            index = i
+        if Mf < Fy*float(shapes [i][121])/1000*.15/10*l and Fy*float(shapes [i][121])/1000*.15/10*l < Mf*1.1: #Zx col 119
+            potentials.append(i)
+    print(potentials)
+    for j in range (0, len(potentials)):
+        weights.append(shapes[potentials[j]][86])
+
+    index = weights.index(min(weights))
+    beam = Beam( shapes[potentials[index]][:] )
 
     #Get new factored weight including self weight of member
-    wf = wf + mass * 9.81
+    wf = wf + beam.weight
     (Vf, Mf) = shearMoment( wf, span, conType )
-
-    beam = Beam()
 
     w2=(4*Mf)/(Mf**2+4*Ma**2+7*Mb**2+4*Mc**2)**.5 #need to get moment distribution
     Mu = (w2*math.pi()/l)*(E*shapes[122][index]*G*shapes[129][index]+((math.pi()*E)/l)**2*shapes[122][index]*shapes[130][index])**.5
@@ -87,3 +93,4 @@ def sizeMember(Vf, Mf, shapes, wf, l):
 
 wf = loadCombos( [] )
 (V, M) = shearMoment( wf, span, conType)
+sizeMember(V, M, shapes, wf, span)

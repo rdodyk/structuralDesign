@@ -1,14 +1,14 @@
 class Beam:
     def __init__( self, properties ):
-        self.weight = properties[84] * 9.81
+        self.weight = float(properties[86]) * 9.81
         self.secClass = 0
-        self.Ix = properties[118]
-        self.Iy = properties[122]
-        self.Zx = properties[119]
-        self.Zy = properties[123]
-        self.Sx = properties[120]
-        self.J = properties[129]
-        self.Cw = properties[130]
+        self.Ix = float(properties[120])
+        self.Iy = float(properties[124])
+        self.Zx = float(properties[121])
+        self.Zy = float(properties[125])
+        self.Sx = float(properties[122])
+        self.J = float(properties[131])
+        self.Cw = float(properties[132])
         self.Mp = 0
         self.Mu = 0
         self.Mr = 0
