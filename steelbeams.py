@@ -2,30 +2,21 @@
 import math
 from memberclasses import Beam
 
-print ("Welcome to the best design program ever")
+#Functions
+def loadCombos(  ):
+    factoredLoads = []
+    loads = [0,0,0,0] #Dead, live, snow, wind
 
-shapes = []
-with open('Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
-    for row in steelCSV:
-        shapes.append(row.strip().split(','))
-        # Metric shape names @ column 82
-        # Check excel file for referencing columns
+    loads[0] = input("Unfactored dead load (kN/m): ")
+    loads[1] = input("Unfactored live load (kN/m): ")
+    loads[2] = input("Unfactored snow load (kN/m): ")
+    loads[3] = input("Unfactored wind load (kN/m): ")
 
-span = float(input("Span of your beam: "))
-#Tributary width of beam
-while True:
-    conType = int(input("How is your beam connected?\n1. Simple\n2. Moment\n3. Cantilever\n4. Simple with Cantilever\n"))
-    if conType in [1, 2, 3, 4]:
-        break
-    else:
-        print("Please choose a valid connection type.")
-
-def loadCombos( factoredLoads ):
-    loads = [0,0,0,0] # [dead, live, snow, wind]
-    loads[0] = ( float(input("Unfactored dead load (kN/m): ")) )
-    loads[1] = ( float(input("Unfactored live load (kN/m): ")) )
-    loads[2] = ( float(input("Unfactored snow load (kN/m): ")) )
-    loads[3] = ( float(input("Unfactored wind load (kN/m): ")) )
+    for i in range (0, len(loads)):
+        if loads[i] == "":
+            loads[i] = 0
+        else:
+            loads[i] = float(loads[i])
 
     for i in range (0, len(loads)):
         if i==0:
@@ -74,13 +65,17 @@ def sizeMember(Vf, Mf, shapes, wf, l):
     for j in range (0, len(potentials)):
         weights.append(shapes[potentials[j]][86])
 
-    index = weights.index(min(weights))
-    beam = Beam( shapes[potentials[index]][:] )
+    if weights ==[]:
+        beam = Beam( shapes[284][:]) #Just chooses ligtest W Shape
+    else:
+        index = weights.index(min(weights))
+        beam = Beam( shapes[potentials[index]][:] )
 
     #Get new factored weight including self weight of member
     wf = wf + beam.weight
     (Vf, Mf) = shearMoment( wf, span, conType )
 
+    #Where we left off
     w2=(4*Mf)/(Mf**2+4*Ma**2+7*Mb**2+4*Mc**2)**.5 #need to get moment distribution
     Mu = (w2*math.pi()/l)*(E*shapes[122][index]*G*shapes[129][index]+((math.pi()*E)/l)**2*shapes[122][index]*shapes[130][index])**.5
 
@@ -91,6 +86,34 @@ def sizeMember(Vf, Mf, shapes, wf, l):
     else:
         Mr = 0.9 * Mu
 
-wf = loadCombos( [] )
+print ("Welcome to the best design program ever")
+
+shapes = []
+with open('Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
+    for row in steelCSV:
+        shapes.append(row.strip().split(','))
+        # Metric shape names @ column 82
+        # Check excel file for referencing columns
+
+span = float(input("Span of your beam: "))
+#Tributary width of beam
+while True:
+    conType = int(input("How is your beam connected?\n1. Simple\n2. Moment\n3. Cantilever\n4. Simple with Cantilever\n"))
+    if conType in [1, 2, 3, 4]:
+        break
+    else:
+        print("Please choose a valid connection type.")
+
+while True:
+    t = input("Do you know the factored line load? Y/N: ")
+    if t.upper() == "Y":
+        wf = float(input("Input the factored load: "))
+        break
+    elif t.upper() == "N":
+        wf = loadCombos(  )
+        break
+    else:
+        print("Please choose either Y or N")
+
 (V, M) = shearMoment( wf, span, conType)
 sizeMember(V, M, shapes, wf, span)
