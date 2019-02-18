@@ -89,7 +89,7 @@ def sizeMember(Vf, Mf, shapes, wf, l):
 print ("Welcome to the best design program ever")
 
 shapes = []
-with open('Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
+with open('../Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
     for row in steelCSV:
         shapes.append(row.strip().split(','))
         # Metric shape names @ column 82

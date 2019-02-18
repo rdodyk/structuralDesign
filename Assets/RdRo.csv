@@ -1,0 +1,49 @@
+﻿SFRS,Rd,Ro,< 0.2,0.2 to 0.35,0.35 to 0.75,>0.75,>0.3
+STEEL,5,1.5,-,-,-,-,-
+Ductile moment-resisting,3.5,1.5,-,-,-,-,-
+Limited ductility moment-resisting,2,1.3,-,-,60,30,30
+Moderately ductile CBF (Tension-compression braces),3,1.3,-,-,40,40,40
+Moderately ductile CBF (Tension only braces),3,1.3,-,-,20,20,20
+Limited ductility CBF (Tension-compression braces),2,1.3,-,-,60,60,60
+Limited ductility CBF (Tension only braces),2,1.3,-,-,40,40,40
+Ductile buckling-restrained,4,1.2,-,-,40,40,40
+Ductile EBF,4,1.5,-,-,-,-,-
+Ductile plate walls,5,1.6,-,-,-,-,-
+Limited ductility plate walls,2,1.5,-,-,60,60,60
+"Conventional construction of moment-resisting frames, braced frames or plate walls (Assembly occupancies)",1.5,1.3,-,-,15,15,15
+"Conventional construction of moment-resisting frames, braced frames or plate walls (Other occupancies)",1.5,1.3,-,-,60,40,40
+Other steel SFRS not listed above,1,1,15,15,x,x,x
+CONCRETE,,,,,,,
+Ductile moment-resisting,,,,,,,
+Moderately ductile moment-resisting,,,,,,,
+Ductile coupled walls,,,,,,,
+Ductile partially coupled walls,,,,,,,
+Moderately ductile partially coupled walls,,,,,,,
+Ductile shear walls,,,,,,,
+Moderately ductile shear walls,,,,,,,
+Conventional construction moment-resisting frames,,,,,,,
+Conventional construction shear walls,,,,,,,
+Conventional construction two-way slabs without beams,,,,,,,
+Tilt-up construction moderately ductile walls and frames,,,,,,,
+Tilt-up construction limited ductility walls and frames,,,,,,,
+Tilt-up construction conventional walls and frames,,,,,,,
+Other concrete SFRS not listed above,,,,,,,
+TIMBER,,,,,,,
+Nailed shear walls: wood-based panel,,,,,,,
+Wood-based and gypsum panels in combination (Shear wall),,,,,,,
+Braced or moment-resisting frames with ductile connections (Moderately ductile),,,,,,,
+Braced or moment-resisting frames with ductile connections (Limited ductility),,,,,,,
+Other wood or gypsum-based SFRS not listed above,,,,,,,
+MASONRY,,,,,,,
+Ductile shear walls,,,,,,,
+Moderately ductile shear walls,,,,,,,
+Conventional construction shear walls,,,,,,,
+Conventional construction moment-resisting frames,,,,,,,
+Unreinforced masonry,,,,,,,
+Other masonry SFRS not listed above,,,,,,,
+COLD FORMED STEEL,,,,,,,
+Screw-connected shear walls - wood based panels,,,,,,,
+Screw-connected shear walls - wood based and gypsum panels in combination,,,,,,,
+Diagonal strap concentrically braced walls (Limited ductility),,,,,,,
+Diagonal strap concentrically braced walls (Conventional construction),,,,,,,
+Other cold-formed SFRS not listed above,,,,,,,
