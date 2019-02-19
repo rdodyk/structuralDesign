@@ -1,5 +1,6 @@
 class Beam:
     def __init__( self, properties ):
+        self.name = properties[84]
         self.weight = float(properties[86]) * 9.81
         self.secClass = 0
         self.Ix = float(properties[120])
@@ -30,8 +31,10 @@ class Beam:
             self.Mp = 0.9*Fy*properties[120]
 
 class Column:
-    def __init__( self, properties ):
+    def __init__( self, properties, k, section, length ):
+        self.name = properties[84]
         self.weight = float(properties[86]) * 9.81
+        self.area = float(properties[87])
         self.secClass = 0
         self.Ix = float(properties[120])
         self.Iy = float(properties[124])
@@ -39,7 +42,31 @@ class Column:
         self.Zy = float(properties[125])
         self.Sx = float(properties[122])
         self.J = float(properties[131])
-        self.Cw = float(properties[132])
+        try:
+            self.Cw = float(properties[132])
+        except:
+            self.Cw = 0
+        self.rx = float(properties[123])
+        self.ry = float(properties[127])
+        self.Cr = 0
         self.Mp = 0
         self.Mu = 0
         self.Mr = 0
+        self.k = k
+        self.section = section
+        self.length = length
+
+    def findClass( self ):
+        Fy = 200000
+        if properties[114] < 7.81 & properties[117] < 59.2:
+            self.secClass = 1
+            self.Mp = 0.9*Fy*properties[119]
+        elif properties[114] < 9.15 & properties[117] < 91.5:
+            self.secClass = 2
+            self.Mp = 0.9*Fy*properties[119]
+        elif properties[114] < 10.77 & properties[117] < 102.3:
+            self.secClass = 3
+            self.Mp = 0.9*Fy*properties[120]
+        else:
+            self.secClass = 4
+            self.Mp = 0.9*Fy*properties[120]
