@@ -2,7 +2,7 @@
 import math
 from memberclasses import Column
 
-#Functions
+### Functions
 
 # Get basic properties of design column
 def colProperties ():
@@ -18,7 +18,7 @@ def colProperties ():
     while True:
         try:
             P = float(input("Factored axial force on column (kN): "))
-            Mx = float(input("Factered moment about strong axis (kN-m): "))
+            Mx = float(input("Factored moment about strong axis (kN-m): "))
             My = float(input("Factored moment about weak axis (kN-m): "))
             break
         except ValueError:
@@ -82,13 +82,16 @@ def prelimSection ( input, shapes ):
     return st, en
 
 # Iterate on prelimSection
-def ULSSimple ( input, shapes, st, en ):
+def ULSSimple ( input, shapes, st, en, skip ):
     Fy = 350
     E = 200000
     n = 1.34
     potentials = []
     weights = []
     for i in range (st, en):
+        if i in skip:
+            continue
+
         column = Column( shapes[i][:], input[4], input[5], input[0] )
         Fex = (math.pi**2*E)/(((input[4]*input[0])/column.rx)**2)
         Fey = (math.pi**2*E)/(((input[4]*input[0])/column.ry)**2)
@@ -98,11 +101,26 @@ def ULSSimple ( input, shapes, st, en ):
         column.Cr = (0.9*column.area*Fy)/((1+lamb**(2*n))**(1/n))/1000
         if column.Cr > input[1]:
             potentials.append([i,column.weight])
+
     for j in range(0, len(potentials)):
         weights.append(potentials[j][1])
     index = weights.index(min(weights))
-    print (shapes[potentials[index][0]][84])
+    column = Column( shapes[potentials[index][0]][:], input[4], input[5], input[0] )
+    return column, potentials[index][0]
 
+def SLSSimple ( k, l, column, index, skip ):
+    klrs = [k*l/column.rx, k*l/column.ry]
+    klr = max(klrs)
+
+    if klr < 200:
+        print("Passed SLS check!")
+        return True, skip
+    else:
+        print("Failed SLS check :(")
+        skip.append(index)
+        return False, skip
+
+### Main Body
 shapes = []
 with open('../Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
     for row in steelCSV:
@@ -112,4 +130,10 @@ with open('../Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
 
 [l, P, Mx, My, k, section] = colProperties()
 st, en = prelimSection( [l, P, Mx, My, k, section], shapes )
-finalSection = ULSSimple( [l, P, Mx, My, k, section], shapes, st, en )
+skip = []
+passed = False
+while passed == False:
+    column, index = ULSSimple( [l, P, Mx, My, k, section], shapes, st, en, skip )
+    passed, skip = SLSSimple ( k, l, column, index, skip )
+
+print(column.name)
