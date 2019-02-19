@@ -12,6 +12,7 @@ class Beam:
         self.Mp = 0
         self.Mu = 0
         self.Mr = 0
+        self.k = 0
 
     def findClass( self ):
         Fy = 200000
@@ -27,3 +28,18 @@ class Beam:
         else:
             self.secClass = 4
             self.Mp = 0.9*Fy*properties[120]
+
+class Column:
+    def __init__( self, properties ):
+        self.weight = float(properties[86]) * 9.81
+        self.secClass = 0
+        self.Ix = float(properties[120])
+        self.Iy = float(properties[124])
+        self.Zx = float(properties[121])
+        self.Zy = float(properties[125])
+        self.Sx = float(properties[122])
+        self.J = float(properties[131])
+        self.Cw = float(properties[132])
+        self.Mp = 0
+        self.Mu = 0
+        self.Mr = 0
