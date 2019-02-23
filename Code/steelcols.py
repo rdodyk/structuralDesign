@@ -151,21 +151,22 @@ def ULSHard ( input, shapes, st, en, skip ):
     G = 77000
     n = 1.34
     potentials = []
+    eff = []
     weights = []
     for i in range (st, en):
         if i in skip:
             continue
-        #Find compressive resistance
-        column, index = ULSSimple ( input, shapes, st, en, skip )
+        for i in (1, 3):
+            #Find compressive resistance
+            column, index = ULSSimple ( input, shapes, st, en, skip )
+            #Find moment resistance
+            print("Find moment resistance here")
 
-
-        #Find moment resistance
-        print("Find moment resistance here")
-
-        #Find column efficiency
-
-        #Test to see if column meets criteria
-        if column.efficiency <= .85 and column.efficiency > .6:
+            #Find column efficiency
+            column.efficiency = input[1]/column.Cr + (0.85*U1x*input[2])/column.Mrx + (B*U1y*input[3])/column.Mry
+            #Test to see if column meets criteria
+            eff.append(column.efficiency)
+        if max(eff) <= .85 and max(eff) > .6:
             potentials.append([i,column.weight])
 
     for j in range(0, len(potentials)):
