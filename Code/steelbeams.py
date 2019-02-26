@@ -30,25 +30,38 @@ def loadCombos(  ):
 
     return (max(factoredLoads))
 
-def shearMoment( wf, l, connection ):
+#All uniformly distributed loads
+def shearMoment( wf, l, x, connection ):
     if connection == 1: #Simple connection
-        vMax = wf*l/2
-        mMax = (wf*l**2)/8
-    elif connection == 2: #Moment
-        vMax = wf*l/2
-        mMax = (wf*l**2)/12
+        # vMax = wf*l/2
+        # mMax = (wf*l**2)/8
+        vEq = wf*(l/2 - x)
+        mEq = wf*x/2*(l-x)
+    elif connection == 2: #Moment at both ends
+        # vMax = wf*l/2
+        # mMax = (wf*l**2)/12
         #mMid = (wf*length**2)/24
+        vEq = wf(l/2-x)
+        mEq = wf/12*(6*l*x-l**2-6*x**2)
     elif connection == 3: #Cantilever
-        vMax = wf*l
-        mMax = (wf*l**2)/2
+        # vMax = wf*l
+        # mMax = (wf*l**2)/2
+        vEq = wf*x
+        mEq = wf*x**2/2
     elif connection == 4: #Simple with cantilever
         a = float(input("Cantilever Length: "))
-        vMax = (wf*(l**2-a**2))/(2*l)
-        m1 = wf/(8*l**2)*(l+a)**2*(l-a)**2
-        m2 = wf*a**2/2
-        mMax = max([m1, m2])
+        # vMax = (wf*(l**2-a**2))/(2*l)
+        # m1 = wf/(8*l**2)*(l+a)**2*(l-a)**2
+        # m2 = wf*a**2/2
+        # mMax = max([m1, m2])
+        if x < l - a:
+            vEq = wf/(2*l)*(l**2-a**2)-wf*x
+            mEq = wf*x/(2*l)*(l^2-a^2-x*l)
+        else:
+            vEq = wf*(a-(x-(l-a)))
+            mEq = wf/2*(a-(x-(l-a)))**2
 
-    return (vMax, mMax)
+    return (vEq, mEq)
 
 def sizeMember(Vf, Mf, shapes, wf, l):
     Fy = 350 #MPa
