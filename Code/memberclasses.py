@@ -5,7 +5,10 @@ class Member:
         self.weight = float(properties[86]) * 9.81
         self.area = float(properties[87])
         self.secClass = 0
-        self.d = float(properties[88])
+        try:
+            self.d = float(properties[88])
+        except:
+            self.d = 0
         try:
             self.b = float(properties[96])
         except:
