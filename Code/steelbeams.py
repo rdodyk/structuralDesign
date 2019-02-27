@@ -63,15 +63,16 @@ def shearMoment( wf, l, x, connection ):
 
     return (vEq, mEq)
 
-def sizeMember(Vf, Mf, shapes, wf, l):
+def ULS(shapes, wf, l, i):
     Fy = 350 #MPa
     E = 200000#MPa
     G = 77000#MPa
     potentials = []
     weights = []
-    index = 0
-    #Preliminary Sizing
-    for i in range(1, 282):
+
+    beam = Member( shapes[i][:], 1, "W", l)
+    
+    for i in range(st, en):
         if Mf < Fy*float(shapes [i][121])/1000*.15/10*l and Fy*float(shapes [i][121])/1000*.15/10*l < Mf*1.1: #Zx col 119
             potentials.append(i)
     print(potentials)
@@ -128,5 +129,8 @@ while True:
     else:
         print("Please choose either Y or N")
 
-(V, M) = shearMoment( wf, span, conType)
-sizeMember(V, M, shapes, wf, span)
+st = next(i for i in (range(len(shapes))) if shapes[i][0] == "W")
+en = next(i for i in reversed(ranged(len(shapes))) if shapes [i][0] == "W") - 1
+
+for i in range (st, en):
+    beam, index = ULS( shapes, wf, span, i )
