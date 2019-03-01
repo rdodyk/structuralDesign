@@ -121,8 +121,8 @@ def ULSSimple ( input, shapes, st, en, skip ):
             F = [Fex, Fey]
             column.Fe = min(F)
 
-        lamb = math.sqrt(Fy/column.Fe)
-        column.Cr = (0.9*column.area*Fy)/((1+lamb**(2*n))**(1/n))/1000
+        column.lamb = math.sqrt(Fy/column.Fe)
+        column.Cr = (0.9*column.area*Fy)/((1+column.lamb**(2*n))**(1/n))/1000
         if column.Cr > input[1]:
             potentials.append([i,column.weight])
 
@@ -131,8 +131,10 @@ def ULSSimple ( input, shapes, st, en, skip ):
     index = weights.index(min(weights))
     #This is ugly, could fix with method in member class
     column = Member( shapes[potentials[index][0]][:], input[4], input[5], input[0] )
-    column.Cr = (0.9*column.area*Fy)/((1+lamb**(2*n))**(1/n))/1000
-    column.Fe = min(F)
+    #Something goes wrong here
+    column.Fe = (math.pi**2*E)/(((input[4]*input[0])/column.ry)**2)
+    column.lamb = math.sqrt(Fy/column.Fe)
+    column.Cr = (0.9*column.area*Fy)/((1+column.lamb**(2*n))**(1/n))/1000
     return column, potentials[index][0]
 
 def SLSSimple ( k, l, column, index, skip ):
@@ -215,22 +217,23 @@ if save.upper() == "Y":
                         \\usepackage{{amsmath}}\n\n
                         \\begin{{document}}
                         Factored Loads:\\\\
-                        Axial Compression: {0} kN, Mx: {1} kN-m, My: {2} kN-m\\\\
+                        Axial Compression: {0} kN, Mx: {1} kN \\cdot m, My: {2} kN \\cdot m\\\\
                         Length: {3} mm, k: {4}\\\\
                         Resulted in the design of a {5.name} steel column\\\\
                         \\textbf{{Resistance Calculation:}}\\\\
                         \\begin{{equation*}}
                         \\begin{{aligned}}
                         F_{{e}} =& \\frac{{\\pi^2 E}}{{(\\frac{{kl}}{{r}})^2}}\\\\
-                        F_{{ex}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4}{3}}}{{{5.rx}}})^2}}\\\\
-                        F_{{ey}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4}{3}}}{{{5.ry}}})^2}}\\\\
+                        F_{{ex}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4}{3}}}{{{5.rx:0.2f}}})^2}}\\\\
+                        F_{{ey}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4}{3}}}{{{5.ry:0.2f}}})^2}}\\\\
                         F_{{e}} =& min \\begin{{cases}}
                         F_{{ex}}\\\\
                         F_{{ey}}\\\\
-                        \\end{{cases}}\\\\
+                        \\end{{cases}} = {5.Fe:0.2f} MPa\\\\
                         \\lambda =& \\sqrt{{\\frac{{F_{{y}}}}{{F_{{e}}}}}}\\\\
-                        \\lambda =& \\sqrt{{\\frac{{350MPa}}{{{5.Fe:0.2f}}}}}\\\\
-                        C_{{r}} =& \\frac{{\\phi A F_{{y}}}}{{(1+\\lambda^2n)^\\frac{{1}}{{n}}}}\\\\
+                        \\lambda =& \\sqrt{{\\frac{{350MPa}}{{{5.Fe:0.2f}}}}} = {5.lamb:0.2f}\\\\
+                        C_{{r}} =& \\frac{{\\phi A F_{{y}}}}{{(1+\\lambda^{{2n}})^\\frac{{1}}{{n}}}}\\\\
+                        C_{{r}} =& \\frac{{0.9 \\cdot {5.area} mm \\cdot 350 MPa}}{{(1+{5.lamb:0.2f}^{{2 \\cdot 1.34}})^\\frac{{1}}{{1.34}}}}\\\\
                         C_{{r}} =& {5.Cr:0.0f} kN
                         \\end{{aligned}}
                         \\end{{equation*}}
