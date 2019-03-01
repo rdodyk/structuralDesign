@@ -1,6 +1,6 @@
 # Program to design steel beams as per CSA S16
 import math
-from memberclasses import Beam
+from memberclasses import Member
 
 #Functions
 def loadCombos(  ):
@@ -61,45 +61,34 @@ def shearMoment( wf, l, x, connection ):
             vEq = wf*(a-(x-(l-a)))
             mEq = wf/2*(a-(x-(l-a)))**2
 
-    return (vEq, mEq)
+    return mEq
 
-def ULS(shapes, wf, l, i):
-    Fy = 350 #MPa
-    E = 200000#MPa
-    G = 77000#MPa
+def omega2(wf, l, connection):
+    mMax = shearMoment(wf, l, -1, connection)
+    Ma = shearMoment(wf, l, l/4, connection)
+    Mb = shearMoment(wf, l, l/2, connection)
+    Mc = shearMoment(wf, l, 3*l/4, connection)
+
+    w2=(4*mMax)/(mMax**2+4*Ma**2+7*Mb**2+4*Mc**2)**.5
+
+    return w2, mMax
+
+def ULS(mMax, w2, l, beam, i):
     potentials = []
     weights = []
 
-    beam = Member( shapes[i][:], 1, "W", l)
-    
-    for i in range(st, en):
-        if Mf < Fy*float(shapes [i][121])/1000*.15/10*l and Fy*float(shapes [i][121])/1000*.15/10*l < Mf*1.1: #Zx col 119
-            potentials.append(i)
-    print(potentials)
-    for j in range (0, len(potentials)):
-        weights.append(shapes[potentials[j]][86])
+    beam.MrCalc(w2)
 
-    if weights ==[]:
-        beam = Beam( shapes[284][:]) #Just chooses ligtest W Shape
-    else:
-        index = weights.index(min(weights))
-        beam = Beam( shapes[potentials[index]][:] )
+    if beam.Mr > mMax:
+        potentials.append([i, beam.weight])
 
-    #Get new factored weight including self weight of member
-    wf = wf + beam.weight
-    (Vf, Mf) = shearMoment( wf, span, conType )
+    for j in range(0, len(potentials)):
+        weights.append(potentials[j][1])
+    index = weights.index(min(weights))
+    beam = Member( shapes[potentials[index][0]][:], input[4], input[5], input[0] )
+    return beam, potentials[index][0]
 
-    #Where we left off
-    w2=(4*Mf)/(Mf**2+4*Ma**2+7*Mb**2+4*Mc**2)**.5 #need to get moment distribution
-    Mu = (w2*math.pi()/l)*(E*shapes[122][index]*G*shapes[129][index]+((math.pi()*E)/l)**2*shapes[122][index]*shapes[130][index])**.5
-
-    if Mu > 0.67*Mp:
-        Mr = 1.15*.9*Mp*(1-(0.28*Mp)/Mu)
-        if Mr > Mp:
-            Mr = Mp
-    else:
-        Mr = 0.9 * Mu
-
+## Start of code##
 print ("Welcome to the best design program ever")
 
 shapes = []
@@ -133,4 +122,7 @@ st = next(i for i in (range(len(shapes))) if shapes[i][0] == "W")
 en = next(i for i in reversed(ranged(len(shapes))) if shapes [i][0] == "W") - 1
 
 for i in range (st, en):
-    beam, index = ULS( shapes, wf, span, i )
+    beam = Member(shapes[i][:], 1, "W", span) # Only designs W shapes for now
+    wftemp = wf + 1.25*beam.weight
+    w2, mMax = omega2(wftemp, l, connection)
+    beam, index = ULS( mMax, w2, span, beam)

@@ -101,8 +101,8 @@ def ULS ( input, shapes ):
         #     Feyz = (Fey+Fez)/(2*omega)*(1-math.sqrt(1-((4*Fey*Fez*omega)/(Fey+Fez)**2)))
         #     Fe = min([Fex, Feyz])
 
-        if column.Cr > input[1]:
-            potentials.append([i,column.weight])
+    if column.Cr > input[1]:
+        potentials.append([i,column.weight])
 
     for j in range(0, len(potentials)):
         weights.append(potentials[j][1])
@@ -110,29 +110,29 @@ def ULS ( input, shapes ):
     column = Member( shapes[potentials[index][0]][:], input[4], input[5], input[0] )
     return column, potentials[index][0]
 
-def crRes ( column, input ):
-    if input[5] == "L":
-        if column.b/column.d < 1.7:
-            if 0 <= column.length/column.rx and column.length/column.rx <= 80:
-                klr = 72 + 0.75*column.length/column.rx
-            elif column.length/column.rx > 80:
-                klr = 32 + 1.25*column.length/column.rx
-                if klr > 200:
-                    klr = 200
-        else: # Gotta do something here
-            print("Reference CSA S16-14 $13.3.3.4 for additional design, design is just wack")
-        Fe = (math.pi**2*E)/(klr)**2
+# def crRes ( column, input ):
+#     if input[5] == "L":
+#         if column.b/column.d < 1.7:
+#             if 0 <= column.length/column.rx and column.length/column.rx <= 80:
+#                 klr = 72 + 0.75*column.length/column.rx
+#             elif column.length/column.rx > 80:
+#                 klr = 32 + 1.25*column.length/column.rx
+#                 if klr > 200:
+#                     klr = 200
+#         else: # Gotta do something here
+#             print("Reference CSA S16-14 $13.3.3.4 for additional design, design is just wack")
+#         Fe = (math.pi**2*E)/(klr)**2
+#
+#     else:
+#         Fex = (math.pi**2*E)/(((input[4]*input[0])/column.rx)**2)
+#         Fey = (math.pi**2*E)/(((input[4]*input[0])/column.ry)**2)
+#         F = [Fex, Fey]
+#         Fe = min(F)
+#
+#     lamb = math.sqrt(Fy/Fe)
+#     column.Cr = (0.9*column.area*Fy)/((1+lamb**(2*n))**(1/n))/1000
 
-    else:
-        Fex = (math.pi**2*E)/(((input[4]*input[0])/column.rx)**2)
-        Fey = (math.pi**2*E)/(((input[4]*input[0])/column.ry)**2)
-        F = [Fex, Fey]
-        Fe = min(F)
-
-    lamb = math.sqrt(Fy/Fe)
-    column.Cr = (0.9*column.area*Fy)/((1+lamb**(2*n))**(1/n))/1000
-
-def SLSSimple ( k, l, column, index, skip ):
+def SLS ( k, l, column, index ):
     klrs = [k*l/column.rx, k*l/column.ry]
     klr = max(klrs)
 
