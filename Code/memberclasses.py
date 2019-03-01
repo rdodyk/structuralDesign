@@ -32,6 +32,7 @@ class Member:
             self.ro = float(properties[140])
         except:
             self.ro = 0
+        self.Fe = 0
         self.Cr = 0
         self.Mp = 0
         self.Mu = 0
