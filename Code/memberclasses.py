@@ -7,6 +7,14 @@ class Member:
         self.secClass = 0
         self.d = float(properties[88])
         try:
+            self.bw = float(properties[114])
+        except:
+            pass
+        try:
+            self.ht = float(properties[117])
+        except:
+            pass
+        try:
             self.b = float(properties[96])
         except:
             pass
@@ -82,12 +90,25 @@ class Member:
         E = 200000
         G = 77000
         Fy = 350
-        self.Mu = ((w2*math.pi)/self.length)*math.sqrt(E*self.Iy*G*self.J+(math.pi*E/self.length)**2*self.Iy*self.Cw)/1000000
-        print(self.Mu)
+        self.ClassCalc()
+        self.Mu = ((w2*math.pi)/self.length)*math.sqrt(E*self.Iy*G*self.J+(math.pi*E/self.length)**2*self.Iy*self.Cw)
         self.Mp = self.Zx/1000*Fy
-        print(self.Mp)
-
         if self.Mu > 0.67*self.Mp:
-            self.Mr = 1.15*0.9*self.Mp*(1-(0.28*self.Mp/self.Mu))
-            if self.Mr > 0.9*self.Mp:
-                self.Mr = 0.9*self.Mp
+            self.Mrx = 1.15*0.9*self.Mp*(1-(0.28*self.Mp/self.Mu))
+            if self.Mrx > 0.9*self.Mp:
+                self.Mrx = 0.9*self.Mp
+        else:
+            self.Mrx = 0.9 * self.Mu
+
+    def ClassCalc( self ):
+        class1 = 145/math.sqrt(350)
+        class2 = 170/math.sqrt(350)
+        class3 = 200/math.sqrt(350)
+        if self.bw < class1 and self.ht < class1:
+            self.secClass = 1
+        elif self.bw < class2 and self.ht < class2:
+            self.secClass = 2
+        elif self.bw < class3 and self.ht < class3:
+            self.secClass = 3
+        else:
+            self.secClass = 4

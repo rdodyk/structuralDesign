@@ -32,61 +32,71 @@ def loadCombos(  ):
 
 #All uniformly distributed loads
 def shearMoment( wf, l, x, connection ):
+    l = l/1000
+    x = x/1000
     if connection == 1: #Simple connection
         # vMax = wf*l/2
         # mMax = (wf*l**2)/8
-        vEq = wf*(l/2 - x)
-        mEq = wf*x/2*(l-x)
+        if x == -0.001:
+            mEq = wf*l**2/8
+        else:
+            vEq = wf*(l/2 - x)
+            mEq = wf*x/2*(l-x)
     elif connection == 2: #Moment at both ends
         # vMax = wf*l/2
         # mMax = (wf*l**2)/12
         #mMid = (wf*length**2)/24
-        vEq = wf(l/2-x)
-        mEq = wf/12*(6*l*x-l**2-6*x**2)
+        if x == -0.001:
+            mEq = wf*l**2/12
+        else:
+            vEq = wf*(l/2-x)
+            mEq = wf/12*(6*l*x-l**2-6*x**2)
     elif connection == 3: #Cantilever
         # vMax = wf*l
-        # mMax = (wf*l**2)/2
-        vEq = wf*x
-        mEq = wf*x**2/2
+        if x == -0.0011:
+            mEq = (wf*l**2)/2
+        else:
+            vEq = wf*x
+            mEq = wf*x**2/2
     elif connection == 4: #Simple with cantilever
         a = float(input("Cantilever Length: "))
         # vMax = (wf*(l**2-a**2))/(2*l)
-        # m1 = wf/(8*l**2)*(l+a)**2*(l-a)**2
-        # m2 = wf*a**2/2
-        # mMax = max([m1, m2])
-        if x < l - a:
-            vEq = wf/(2*l)*(l**2-a**2)-wf*x
-            mEq = wf*x/(2*l)*(l^2-a^2-x*l)
+        if x == -0.001:
+            m1 = wf/(8*l**2)*(l+a)**2*(l-a)**2
+            m2 = wf*a**2/2
+            mMax = max([m1, m2])
         else:
-            vEq = wf*(a-(x-(l-a)))
-            mEq = wf/2*(a-(x-(l-a)))**2
-
+            if x < l - a:
+                vEq = wf/(2*l)*(l**2-a**2)-wf*x
+                mEq = wf*x/(2*l)*(l^2-a^2-x*l)
+            else:
+                vEq = wf*(a-(x-(l-a)))
+                mEq = wf/2*(a-(x-(l-a)))**2
     return mEq
 
 def omega2(wf, l, connection):
-    mMax = shearMoment(wf, l, -1, connection)
-    Ma = shearMoment(wf, l, l/4, connection)
-    Mb = shearMoment(wf, l, l/2, connection)
-    Mc = shearMoment(wf, l, 3*l/4, connection)
-
+    mMax = abs(shearMoment(wf, l, -1, connection))
+    Ma = abs(shearMoment(wf, l, l/4, connection))
+    Mb = abs(shearMoment(wf, l, l/2, connection))
+    Mc = abs(shearMoment(wf, l, 3*l/4, connection))
     w2=(4*mMax)/(mMax**2+4*Ma**2+7*Mb**2+4*Mc**2)**.5
+    if w2 > 2.5:
+        w2 = 2.5
+    return w2, [mMax, Ma, Mb, Mc]
 
-    return w2, mMax
-
-def ULS(mMax, w2, l, beam, i):
-    potentials = []
+def ULS(mDist, w2, l, beam, i, potentials):
     weights = []
 
     beam.MrCalc(w2)
-
-    if beam.Mr > mMax:
+    if beam.Mrx > mDist[0]:
         potentials.append([i, beam.weight])
 
-    for j in range(0, len(potentials)):
-        weights.append(potentials[j][1])
-    index = weights.index(min(weights))
-    beam = Member( shapes[potentials[index][0]][:], input[4], input[5], input[0] )
-    return beam, potentials[index][0]
+    # for j in range(0, len(potentials)):
+    #     weights.append(potentials[j][1])
+    # index = weights.index(min(weights))
+    # beam = Member( shapes[potentials[index][0]][:], 1, "W", l )
+    # beam.MrCalc(w2)
+    return potentials
 
 ## Start of code##
 print ("Welcome to the best design program ever")
@@ -98,7 +108,7 @@ with open('../Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
         # Metric shape names @ column 82
         # Check excel file for referencing columns
 
-span = float(input("Span of your beam: "))
+span = float(input("Span of your beam (mm): "))
 #Tributary width of beam
 while True:
     conType = int(input("How is your beam connected?\n1. Simple\n2. Moment\n3. Cantilever\n4. Simple with Cantilever\n"))
@@ -110,7 +120,7 @@ while True:
 while True:
     t = input("Do you know the factored line load? Y/N: ")
     if t.upper() == "Y":
-        wf = float(input("Input the factored load: "))
+        wf = float(input("Input the factored load (kN/m): "))
         break
     elif t.upper() == "N":
         wf = loadCombos(  )
@@ -119,10 +129,21 @@ while True:
         print("Please choose either Y or N")
 
 st = next(i for i in (range(len(shapes))) if shapes[i][0] == "W")
-en = next(i for i in reversed(ranged(len(shapes))) if shapes [i][0] == "W") - 1
+en = next(i for i in reversed(range(len(shapes))) if shapes [i][0] == "W") - 1
 
+potentials = []
+w2, mDist = omega2(wf, span, conType)
 for i in range (st, en):
     beam = Member(shapes[i][:], 1, "W", span) # Only designs W shapes for now
-    wftemp = wf + 1.25*beam.weight
-    w2, mMax = omega2(wftemp, l, connection)
-    beam, index = ULS( mMax, w2, span, beam)
+    wf = wf + 1.25*beam.weight
+    potentials = ULS( mDist, w2, span, beam, i, potentials)
+
+weights = []
+for j in range(0, len(potentials)):
+    weights.append(potentials[j][1])
+index = weights.index(min(weights))
+beam = Member( shapes[potentials[index][0]][:], 1, "W", span )
+beam.MrCalc(w2)
+
+print(beam.name)
+print(mDist, beam.Mrx)
