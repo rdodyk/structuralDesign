@@ -219,7 +219,7 @@ if save.upper() == "Y":
                         \\usepackage{{amsmath}}\n\n
                         \\begin{{document}}
                         Factored Loads for {6}:\\\\
-                        Axial Compression: {0} kN, Mx: {1} kN $\\cdot$ m, My: {2} kN $\\cdot$ m\\\\
+                        Axial Compression: {0} kN, Mx: {1} kN$\\cdot$m, My: {2} kN$\\cdot$m\\\\
                         Length: {3} mm, k: {4}\\\\
                         Resulted in the design of a {5.name} steel column\\\\
                         \\textbf{{Resistance Calculation:}}\\\\
