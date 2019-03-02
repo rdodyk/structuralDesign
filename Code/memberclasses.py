@@ -33,6 +33,7 @@ class Member:
         except:
             self.ro = 0
         self.Fe = 0
+        self.lamb = 0
         self.Cr = 0
         self.Mp = 0
         self.Mu = 0
