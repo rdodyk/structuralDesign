@@ -146,3 +146,38 @@ beam = Member( shapes[potentials[index][0]][:], 1, "W", span )
 beam.MrCalc(w2)
 
 print(beam.name)
+
+save = input("Save this beam? ")
+if save.upper() == "Y":
+    fileName = input("Name of this beam: ")
+    file = "../Output/{}.tex".format(fileName)
+    f = open(file, "w+")
+    # Begin LaTeX!
+    # Outputs a .tex file with a perfectly formatted design
+    output = """ \\documentclass{{article}}\n\n
+                        \\usepackage{{amsmath}}\n\n
+                        \\begin{{document}}
+                        Factored Loads for {3}:\\\\
+                        Mf: {0[0]:0.2f} kNm\\\\
+                        Length: {1} mm\\\\
+                        Resulted in the design of a {2.name} steel beam\\\\
+                        \\textbf{{Resistance Calculation:}}\\\\
+                        \\begin{{align*}}
+                        \\omega_{{2}} =& \\frac{{4 M_{{max}}}}{{\\sqrt{{M_{{max}}^2 + 4M_{{a}}^2 + 7M_{{b}}^2 + 4M_{{c}}^2}}}} \\leq 2.5 && \\oint 13.6\\\\
+                        \\omega_{{2}} =& \\frac{{4\\cdot{0[0]:0.2f}}}{{\\sqrt{{{0[0]:0.2f}^2 + 4\\cdot{0[1]:0.2f}^2 + 7\\cdot{0[2]:0.2f}^2 + 4\\cdot{0[3]:0.3f}^2}}}} && \\\\
+                        \\omega =& {4:0.3f} && \\\\
+                        M_{{u}} =& \\frac{{\\omega_{{2}}\\pi}}{{L}}\\sqrt{{EI_{{y}}GJ+(\\frac{{\\pi E}}{{L}})^2 I_{{y}}C_{{w}}}} && \\oint 13.6\\\\
+                        M_{{u}} =& \\frac{{{4:0.3f}\\pi}}{{{1}}}\\sqrt{{E{2.Iy}G{2.J}+(\\frac{{\\pi E}}{{{1}}})^2 {2.Iy}\\cdot{2.Cw}}} &&\\\\
+                        M_{{u}} =& {2.Mu:0.2f}&&\\\\
+                        M_{{p}} =& \\phi Z F_{{y}} && \\oint 13.5\\\\
+                        M_{{p}} =& 0.9\\cdot {2.Zx}\\cdot 350MPa && \\\\
+                        M_{{p}} =& {2.Mp:0.2f} \\\\
+                        M_{{r}} =& 1.15\\phi M_{{p}}[1-\\frac{{0.28M_{{p}}}}{{M_{{u}}}}] \\leq \\phi M_{{p}} \\textnormal{{when}} M_{{u}} > 0.67M_{{p}} && \\oint 13.6 a) i)\\\\
+                        M_{{r}} =& \\phi M_{{u}} \\textnormal{{when}} M_{{u}} \\leq 0.67M_{{p}} && \\oint 13.6 a) ii)\\\\
+                        M_{{r}} =& {2.Mrx:0.2f} kN\\cdot m && \\\\
+                        \\end{{align*}}
+                        \\end{{document}}""".format(mDist, span, beam, fileName, w2)
+    f.write(output)
+    f.close()
+else:
+    pass
