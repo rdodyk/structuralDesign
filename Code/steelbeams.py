@@ -3,14 +3,14 @@ import math
 from memberclasses import Member
 
 #Functions
-def loadCombos(  ):
+def loadCombos( width ):
     factoredLoads = []
     loads = [0,0,0,0] #Dead, live, snow, wind
 
-    loads[0] = input("Unfactored dead load (kN/m): ")
-    loads[1] = input("Unfactored live load (kN/m): ")
-    loads[2] = input("Unfactored snow load (kN/m): ")
-    loads[3] = input("Unfactored wind load (kN/m): ")
+    loads[0] = input("Unfactored dead load (kPa): ")
+    loads[1] = input("Unfactored live load (kPa): ")
+    loads[2] = input("Unfactored snow load (kPa): ")
+    loads[3] = input("Unfactored wind load (kPa): ")
 
     for i in range (0, len(loads)):
         if loads[i] == "":
@@ -28,8 +28,9 @@ def loadCombos(  ):
         elif i==3:
             factoredLoads.append(1.25*loads[0]+1.4*loads[3]+0.5*max([loads[1], loads[2]]))
 
-    return (max(factoredLoads))
-
+    wf = max(factoredLoads)*width/1000
+    return (wf)
+    
 #All uniformly distributed loads
 def shearMoment( wf, l, x, connection ):
     l = l/1000
@@ -90,15 +91,9 @@ def ULS(mDist, w2, l, beam, i, potentials):
     beam.MrCalc(w2)
     if beam.Mrx > mDist[0]:
         potentials.append([i, beam.weight])
-
-    # for j in range(0, len(potentials)):
-    #     weights.append(potentials[j][1])
-    # index = weights.index(min(weights))
-    # beam = Member( shapes[potentials[index][0]][:], 1, "W", l )
-    # beam.MrCalc(w2)
     return potentials
 
-## Start of code##
+# Start of code#
 print ("Welcome to the best design program ever")
 
 shapes = []
@@ -107,9 +102,21 @@ with open('../Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
         shapes.append(row.strip().split(','))
         # Metric shape names @ column 82
         # Check excel file for referencing columns
-
-span = float(input("Span of your beam (mm): "))
-#Tributary width of beam
+while True:
+    try:
+        span = float(input("Span of your beam (mm): "))
+        if span < 100:
+            print("Wack span yo")
+            continue
+    except:
+        print("Please enter a valid span")
+    try:
+        width = float(input("Tributary width of your beam (mm): "))
+        if width < 50:
+            print("That may not be a valid tributary width")
+            continue
+    except:
+        print("Please enter a valid tributary width")
 while True:
     conType = int(input("How is your beam connected?\n1. Simple\n2. Moment\n3. Cantilever\n4. Simple with Cantilever\n"))
     if conType in [1, 2, 3, 4]:
@@ -119,11 +126,11 @@ while True:
 
 while True:
     t = input("Do you know the factored line load? Y/N: ")
-    if t.upper() == "Y":
+    if t.upper().strip() == "Y":
         wf = float(input("Input the factored load (kN/m): "))
         break
-    elif t.upper() == "N":
-        wf = loadCombos(  )
+    elif t.upper().strip() == "N":
+        wf = loadCombos( width )
         break
     else:
         print("Please choose either Y or N")
@@ -147,15 +154,15 @@ beam.MrCalc(w2)
 
 print(beam.name)
 
-save = input("Save this beam? ")
-if save.upper() == "Y":
+save = input("Save this beam? (Y) ")
+if save.upper().strip() == "Y" or save.upper().strip() =="":
     fileName = input("Name of this beam: ")
     file = "../Output/{}.tex".format(fileName)
     f = open(file, "w+")
     # Begin LaTeX!
     # Outputs a .tex file with a perfectly formatted design
-    output = """ \\documentclass{{article}}\n\n
-                        \\usepackage{{amsmath}}\n\n
+    output = """ \\documentclass{{article}}\n
+                        \\usepackage{{amsmath}}n\n
                         \\begin{{document}}
                         Factored Loads for {3}:\\\\
                         Mf: {0[0]:0.2f} kNm\\\\
