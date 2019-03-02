@@ -18,17 +18,17 @@ class Member:
             self.b = float(properties[96])
         except:
             pass
-        self.Ix = float(properties[120])
-        self.Iy = float(properties[124])
+        self.Ix = float(properties[120])*1000000
+        self.Iy = float(properties[124])*1000000
         self.Zx = float(properties[121])
         self.Zy = float(properties[125])
         self.Sx = float(properties[122])
         try:
-            self.J = float(properties[131])
+            self.J = float(properties[131])*1000
         except:
             self.J = 0
         try:
-            self.Cw = float(properties[132])
+            self.Cw = float(properties[132])*1000000000
         except:
             self.Cw = 0
         self.rx = float(properties[123])
@@ -91,8 +91,12 @@ class Member:
         G = 77000
         Fy = 350
         self.ClassCalc()
-        self.Mu = ((w2*math.pi)/self.length)*math.sqrt(E*self.Iy*G*self.J+(math.pi*E/self.length)**2*self.Iy*self.Cw)
-        self.Mp = self.Zx/1000*Fy
+        self.Mu = ((w2*math.pi)/self.length)*math.sqrt(E*self.Iy*G*self.J+((math.pi*E/self.length)**2)*self.Iy*self.Cw)/1000000
+        if self.secClass == 1 or self.secClass == 2:
+            self.Mp = self.Zx/1000*Fy
+        else:
+            self.Mp = self.Sx/1000*Fy
+
         if self.Mu > 0.67*self.Mp:
             self.Mrx = 1.15*0.9*self.Mp*(1-(0.28*self.Mp/self.Mu))
             if self.Mrx > 0.9*self.Mp:

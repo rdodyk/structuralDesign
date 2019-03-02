@@ -146,4 +146,3 @@ beam = Member( shapes[potentials[index][0]][:], 1, "W", span )
 beam.MrCalc(w2)
 
 print(beam.name)
-print(mDist, beam.Mrx)
