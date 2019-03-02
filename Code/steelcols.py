@@ -213,31 +213,31 @@ if save.upper() == "Y":
     fileName = input("Name of this Column: ")
     file = "../Output/{}.tex".format(fileName)
     f = open(file, "w+")
+    # Begin LaTeX!
+    # Outputs a .tex file with a perfectly formatted design
     output = """ \\documentclass{{article}}\n\n
                         \\usepackage{{amsmath}}\n\n
                         \\begin{{document}}
-                        Factored Loads:\\\\
-                        Axial Compression: {0} kN, Mx: {1} kN \\cdot m, My: {2} kN \\cdot m\\\\
+                        Factored Loads for {6}:\\\\
+                        Axial Compression: {0} kN, Mx: {1} kN $\\cdot$ m, My: {2} kN $\\cdot$ m\\\\
                         Length: {3} mm, k: {4}\\\\
                         Resulted in the design of a {5.name} steel column\\\\
                         \\textbf{{Resistance Calculation:}}\\\\
-                        \\begin{{equation*}}
-                        \\begin{{aligned}}
-                        F_{{e}} =& \\frac{{\\pi^2 E}}{{(\\frac{{kl}}{{r}})^2}}\\\\
-                        F_{{ex}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4}{3}}}{{{5.rx:0.2f}}})^2}}\\\\
-                        F_{{ey}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4}{3}}}{{{5.ry:0.2f}}})^2}}\\\\
+                        \\begin{{align*}}
+                        F_{{e}} =& \\frac{{\\pi^2 E}}{{(\\frac{{kl}}{{r}})^2}} && \\oint 13.3.1\\\\
+                        F_{{ex}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4} \\cdot {3} mm}}{{{5.rx:0.2f} mm}})^2}} && \\\\
+                        F_{{ey}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4} \\cdot {3} mm}}{{{5.ry:0.2f} mm}})^2}} && \\\\
                         F_{{e}} =& min \\begin{{cases}}
                         F_{{ex}}\\\\
                         F_{{ey}}\\\\
-                        \\end{{cases}} = {5.Fe:0.2f} MPa\\\\
-                        \\lambda =& \\sqrt{{\\frac{{F_{{y}}}}{{F_{{e}}}}}}\\\\
-                        \\lambda =& \\sqrt{{\\frac{{350MPa}}{{{5.Fe:0.2f}}}}} = {5.lamb:0.2f}\\\\
-                        C_{{r}} =& \\frac{{\\phi A F_{{y}}}}{{(1+\\lambda^{{2n}})^\\frac{{1}}{{n}}}}\\\\
-                        C_{{r}} =& \\frac{{0.9 \\cdot {5.area} mm \\cdot 350 MPa}}{{(1+{5.lamb:0.2f}^{{2 \\cdot 1.34}})^\\frac{{1}}{{1.34}}}}\\\\
+                        \\end{{cases}} = {5.Fe:0.2f} MPa && \\oint 13.3.1\\\\
+                        \\lambda =& \\sqrt{{\\frac{{F_{{y}}}}{{F_{{e}}}}}} && \\oint 13.3.1\\\\
+                        \\lambda =& \\sqrt{{\\frac{{350 MPa}}{{{5.Fe:0.2f} MPa}}}} = {5.lamb:0.2f} &&\\\\
+                        C_{{r}} =& \\frac{{\\phi A F_{{y}}}}{{(1+\\lambda^{{2n}})^\\frac{{1}}{{n}}}} && \\oint 13.3.1\\\\
+                        C_{{r}} =& \\frac{{0.9 \\cdot {5.area} mm \\cdot 350 MPa}}{{(1+{5.lamb:0.2f}^{{2 \\cdot 1.34}})^\\frac{{1}}{{1.34}}}} &&\\\\
                         C_{{r}} =& {5.Cr:0.0f} kN
-                        \\end{{aligned}}
-                        \\end{{equation*}}
-                        \\end{{document}}""".format(P, Mx, My, l, k, column)
+                        \\end{{align*}}
+                        \\end{{document}}""".format(P, Mx, My, l, k, column, fileName)
     f.write(output)
     f.close()
 else:
