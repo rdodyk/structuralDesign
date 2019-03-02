@@ -30,7 +30,7 @@ def loadCombos( width ):
 
     wf = max(factoredLoads)*width/1000
     return (wf)
-    
+
 #All uniformly distributed loads
 def shearMoment( wf, l, x, connection ):
     l = l/1000
@@ -108,15 +108,9 @@ while True:
         if span < 100:
             print("Wack span yo")
             continue
+        break
     except:
         print("Please enter a valid span")
-    try:
-        width = float(input("Tributary width of your beam (mm): "))
-        if width < 50:
-            print("That may not be a valid tributary width")
-            continue
-    except:
-        print("Please enter a valid tributary width")
 while True:
     conType = int(input("How is your beam connected?\n1. Simple\n2. Moment\n3. Cantilever\n4. Simple with Cantilever\n"))
     if conType in [1, 2, 3, 4]:
@@ -130,6 +124,14 @@ while True:
         wf = float(input("Input the factored load (kN/m): "))
         break
     elif t.upper().strip() == "N":
+            try:
+                width = float(input("Tributary width of your beam (mm): "))
+                if width < 50:
+                    print("That may not be a valid tributary width")
+                    continue
+                break
+            except:
+                print("Please enter a valid tributary width")
         wf = loadCombos( width )
         break
     else:
