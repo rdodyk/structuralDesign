@@ -137,9 +137,10 @@ def ULSSimple ( input, shapes, st, en, skip ):
     column.Cr = (0.9*column.area*Fy)/((1+column.lamb**(2*n))**(1/n))/1000
     return column, potentials[index][0]
 
+# Won't select class 4 sections, but everything else is fine
 def SLSSimple ( section, column, index, skip ):
     column.ClassCalc(section)
-    if column.secClass != 1:
+    if column.secClass == 4:
         skip.append(index)
         return False, skip
     else:
