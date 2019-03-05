@@ -79,58 +79,17 @@ def prelimSection ( input, shapes ):
 
 # Iterate on prelimSection
 # Need to add cases for angle and channel members
-def ULS ( input, shapes ):
+def ULS ( input, shapes, column ):
     Fy = 350
     E = 200000
     G = 77000
     n = 1.34
-    potentials = []
     weights = []
-    # for i in range (st, en):
-    #     if i in skip:
-    #         continue
-
-        column = Member( shapes[i][:], input[4], input[5], input[0] )
-        # Double angle case, but don't feel like making it work really
-        # if input[5] == "2L":
-        #     omega = 1-((column.ro**2-column.rx**2-column.ry**2)/(column.ro**2))
-        #     Fex = (math.pi**2*E)/((column.k*column.length/column.rx)**2) # Add kx and ky, kz is always 1 tho
-        #     Fey = (math.pi**2*E)/((column.k*column.length/column.ry)**2) #Add Lx and Ly to column properties
-        #     Fez = ((math.pi**2*E*column.Cw)/((column.k*column.length)**2)+G*column.J)*(1/(column.area*column.ro**2))
-        #     #Need to calculate Feyz as per code
-        #     Feyz = (Fey+Fez)/(2*omega)*(1-math.sqrt(1-((4*Fey*Fez*omega)/(Fey+Fez)**2)))
-        #     Fe = min([Fex, Feyz])
-
+    
+    column.CrCalc(input)
     if column.Cr > input[1]:
-        potentials.append([i,column.weight])
+        potentials.append(column)
 
-    for j in range(0, len(potentials)):
-        weights.append(potentials[j][1])
-    index = weights.index(min(weights))
-    column = Member( shapes[potentials[index][0]][:], input[4], input[5], input[0] )
-    return column, potentials[index][0]
-
-# def crRes ( column, input ):
-#     if input[5] == "L":
-#         if column.b/column.d < 1.7:
-#             if 0 <= column.length/column.rx and column.length/column.rx <= 80:
-#                 klr = 72 + 0.75*column.length/column.rx
-#             elif column.length/column.rx > 80:
-#                 klr = 32 + 1.25*column.length/column.rx
-#                 if klr > 200:
-#                     klr = 200
-#         else: # Gotta do something here
-#             print("Reference CSA S16-14 $13.3.3.4 for additional design, design is just wack")
-#         Fe = (math.pi**2*E)/(klr)**2
-#
-#     else:
-#         Fex = (math.pi**2*E)/(((input[4]*input[0])/column.rx)**2)
-#         Fey = (math.pi**2*E)/(((input[4]*input[0])/column.ry)**2)
-#         F = [Fex, Fey]
-#         Fe = min(F)
-#
-#     lamb = math.sqrt(Fy/Fe)
-#     column.Cr = (0.9*column.area*Fy)/((1+lamb**(2*n))**(1/n))/1000
 
 def SLS ( k, l, column, index ):
     klrs = [k*l/column.rx, k*l/column.ry]
@@ -153,10 +112,12 @@ with open('../Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
         # Check excel file for referencing columns
 
 [l, P, Mx, My, k, section] = colProperties()
+potentials = []
 st, en = prelimSection( [l, P, Mx, My, k, section], shapes )
 # Just check all members to see if they passed ULS and SLS cases
 for i in range (st, en):
-    column, index = ULS ( [l, P, Mx, My, k, section], shapes )
+    column = Member ( shapes, k, section, l )
+    index = ULS ( [l, P, Mx, My, k, section], shapes, column )
     potentials = SLS ( k, l, column, index )
 
 print(column.name)
