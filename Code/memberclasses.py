@@ -44,17 +44,15 @@ class Member:
         self.section = section
         self.length = length
 
-    def findClass( self ):
-        Fy = 200000
-        if properties[114] < 7.81 & properties[117] < 59.2:
+    def ClassCalc( self ):
+        class1 = 145/math.sqrt(350)
+        class2 = 170/math.sqrt(350)
+        class3 = 200/math.sqrt(350)
+        if self.bw < class1 and self.ht < class1:
             self.secClass = 1
-            self.Mp = 0.9*Fy*properties[119]
-        elif properties[114] < 9.15 & properties[117] < 91.5:
+        elif self.bw < class2 and self.ht < class2:
             self.secClass = 2
-            self.Mp = 0.9*Fy*properties[119]
-        elif properties[114] < 10.77 & properties[117] < 102.3:
+        elif self.bw < class3 and self.ht < class3:
             self.secClass = 3
-            self.Mp = 0.9*Fy*properties[120]
         else:
             self.secClass = 4
-            self.Mp = 0.9*Fy*properties[120]

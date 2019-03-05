@@ -138,16 +138,12 @@ def ULSSimple ( input, shapes, st, en, skip ):
     return column, potentials[index][0]
 
 def SLSSimple ( k, l, column, index, skip ):
-    klrs = [k*l/column.rx, k*l/column.ry]
-    klr = max(klrs)
-
-    if klr < 200:
-        print("Passed SLS check!")
-        return True, skip
-    else:
-        print("Failed SLS check :(")
+    column.ClassCalc()
+    if column.secClass != 1:
         skip.append(index)
         return False, skip
+    else:
+        return True, skip
 
 # Designs beam columns, but only with point moments at the top of the column
 def ULSHard ( input, shapes, st, en, skip ):
@@ -221,7 +217,7 @@ if save.upper() == "Y":
                         Factored Loads for {6}:\\\\
                         Axial Compression: {0} kN, Mx: {1} kN$\\cdot$m, My: {2} kN$\\cdot$m\\\\
                         Length: {3} mm, k: {4}\\\\
-                        Resulted in the design of a {5.name} steel column\\\\
+                        Resulted in the design of a {5.name} class {5.secClass} steel column\\\\
                         \\textbf{{Resistance Calculation:}}\\\\
                         \\begin{{align*}}
                         F_{{e}} =& \\frac{{\\pi^2 E}}{{(\\frac{{kl}}{{r}})^2}} && \\oint 13.3.1\\\\
