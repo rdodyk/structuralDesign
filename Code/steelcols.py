@@ -137,8 +137,8 @@ def ULSSimple ( input, shapes, st, en, skip ):
     column.Cr = (0.9*column.area*Fy)/((1+column.lamb**(2*n))**(1/n))/1000
     return column, potentials[index][0]
 
-def SLSSimple ( k, l, column, index, skip ):
-    column.ClassCalc()
+def SLSSimple ( section, column, index, skip ):
+    column.ClassCalc(section)
     if column.secClass != 1:
         skip.append(index)
         return False, skip
@@ -195,7 +195,7 @@ if Mx == 0 and My == 0:
 
     while passed == False:
         column, index = ULSSimple ( [l, P, Mx, My, k, section], shapes, st, en, skip )
-        passed, skip = SLSSimple ( k, l, column, index, skip )
+        passed, skip = SLSSimple ( section, column, index, skip )
 
 else:
     while passed == False:
