@@ -38,7 +38,8 @@ class Member:
         except:
             self.ro = 0
         self.Cr = 0
-        self.Mp = 0
+        self.Mpx = 0
+        self.Mpy = 0
         self.Mu = 0
         self.Mrx = 0
         self.Mry = 0
@@ -47,7 +48,7 @@ class Member:
         self.section = section
         self.length = length
 
-    def CrCalc( self, input ):
+    def CrCalc( self, input, lamb ):
         if input[5] == "L":
             if self.b/self.d < 1.7:
                 if 0 <= self.length/self.rx and self.length/self.rx <= 80:
@@ -60,11 +61,12 @@ class Member:
                 print("Reference CSA S16-14 $13.3.3.4 for additional design, design is just wack")
             Fe = (math.pi**2*E)/(klr)**2
         else:
-            Fex = (math.pi**2*E)/(((input[4]*input[0])/self.rx)**2)
-            Fey = (math.pi**2*E)/(((input[4]*input[0])/self.ry)**2)
+            Fex = (math.pi**2*E)/(((self.k*self.length)/self.rx)**2)
+            Fey = (math.pi**2*E)/(((self.k*self.length)/self.ry)**2)
             F = [Fex, Fey]
             Fe = min(F)
-        lamb = math.sqrt(Fy/Fe)
+        if lamb != 0:
+            lamb = math.sqrt(Fy/Fe)
         self.Cr = (0.9*self.area*Fy)/((1+lamb**(2*n))**(1/n))/1000
 
     def MrCalc( self, w2 ):
@@ -74,14 +76,16 @@ class Member:
         self.ClassCalc()
         self.Mu = ((w2*math.pi)/self.length)*math.sqrt(E*self.Iy*G*self.J+((math.pi*E/self.length)**2)*self.Iy*self.Cw)/1000000
         if self.secClass == 1 or self.secClass == 2:
-            self.Mp = self.Zx/1000*Fy
+            self.Mpx = self.Zx/1000*Fy
+            self.Mpy = self.Zy/1000*Fy
         else:
-            self.Mp = self.Sx/1000*Fy
+            self.Mpx = self.Sx/1000*Fy
+            self.Mpy = self.Sy/1000*Fy
 
         if self.Mu > 0.67*self.Mp:
-            self.Mrx = 1.15*0.9*self.Mp*(1-(0.28*self.Mp/self.Mu))
-            if self.Mrx > 0.9*self.Mp:
-                self.Mrx = 0.9*self.Mp
+            self.Mrx = 1.15*0.9*self.Mpx*(1-(0.28*self.Mp/self.Mu))
+            if self.Mrx > 0.9*self.Mpx:
+                self.Mrx = 0.9*self.Mpx
         else:
             self.Mrx = 0.9 * self.Mu
 
