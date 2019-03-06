@@ -1,6 +1,6 @@
 # Program to design steel beams as per CSA S16
 import math
-from memberclasses import Beam
+from memberclasses import Member
 
 #Functions
 def loadCombos(  ):
@@ -30,62 +30,75 @@ def loadCombos(  ):
 
     return (max(factoredLoads))
 
-def shearMoment( wf, l, connection ):
+#All uniformly distributed loads
+def shearMoment( wf, l, x, connection ):
+    l = l/1000
+    x = x/1000
     if connection == 1: #Simple connection
-        vMax = wf*l/2
-        mMax = (wf*l**2)/8
-    elif connection == 2: #Moment
-        vMax = wf*l/2
-        mMax = (wf*l**2)/12
+        # vMax = wf*l/2
+        # mMax = (wf*l**2)/8
+        if x == -0.001:
+            mEq = wf*l**2/8
+        else:
+            vEq = wf*(l/2 - x)
+            mEq = wf*x/2*(l-x)
+    elif connection == 2: #Moment at both ends
+        # vMax = wf*l/2
+        # mMax = (wf*l**2)/12
         #mMid = (wf*length**2)/24
+        if x == -0.001:
+            mEq = wf*l**2/12
+        else:
+            vEq = wf*(l/2-x)
+            mEq = wf/12*(6*l*x-l**2-6*x**2)
     elif connection == 3: #Cantilever
-        vMax = wf*l
-        mMax = (wf*l**2)/2
+        # vMax = wf*l
+        if x == -0.0011:
+            mEq = (wf*l**2)/2
+        else:
+            vEq = wf*x
+            mEq = wf*x**2/2
     elif connection == 4: #Simple with cantilever
         a = float(input("Cantilever Length: "))
-        vMax = (wf*(l**2-a**2))/(2*l)
-        m1 = wf/(8*l**2)*(l+a)**2*(l-a)**2
-        m2 = wf*a**2/2
-        mMax = max([m1, m2])
+        # vMax = (wf*(l**2-a**2))/(2*l)
+        if x == -0.001:
+            m1 = wf/(8*l**2)*(l+a)**2*(l-a)**2
+            m2 = wf*a**2/2
+            mMax = max([m1, m2])
+        else:
+            if x < l - a:
+                vEq = wf/(2*l)*(l**2-a**2)-wf*x
+                mEq = wf*x/(2*l)*(l^2-a^2-x*l)
+            else:
+                vEq = wf*(a-(x-(l-a)))
+                mEq = wf/2*(a-(x-(l-a)))**2
+    return mEq
 
-    return (vMax, mMax)
+def omega2(wf, l, connection):
+    mMax = abs(shearMoment(wf, l, -1, connection))
+    Ma = abs(shearMoment(wf, l, l/4, connection))
+    Mb = abs(shearMoment(wf, l, l/2, connection))
+    Mc = abs(shearMoment(wf, l, 3*l/4, connection))
+    w2=(4*mMax)/(mMax**2+4*Ma**2+7*Mb**2+4*Mc**2)**.5
+    if w2 > 2.5:
+        w2 = 2.5
+    return w2, [mMax, Ma, Mb, Mc]
 
-def sizeMember(Vf, Mf, shapes, wf, l):
-    Fy = 350 #MPa
-    E = 200000#MPa
-    G = 77000#MPa
-    potentials = []
+def ULS(mDist, w2, l, beam, i, potentials):
     weights = []
-    index = 0
-    #Preliminary Sizing
-    for i in range(1, 282):
-        if Mf < Fy*float(shapes [i][121])/1000*.15/10*l and Fy*float(shapes [i][121])/1000*.15/10*l < Mf*1.1: #Zx col 119
-            potentials.append(i)
-    print(potentials)
-    for j in range (0, len(potentials)):
-        weights.append(shapes[potentials[j]][86])
 
-    if weights ==[]:
-        beam = Beam( shapes[284][:]) #Just chooses ligtest W Shape
-    else:
-        index = weights.index(min(weights))
-        beam = Beam( shapes[potentials[index]][:] )
+    beam.MrCalc(w2)
+    if beam.Mrx > mDist[0]:
+        potentials.append([i, beam.weight])
 
-    #Get new factored weight including self weight of member
-    wf = wf + beam.weight
-    (Vf, Mf) = shearMoment( wf, span, conType )
+    # for j in range(0, len(potentials)):
+    #     weights.append(potentials[j][1])
+    # index = weights.index(min(weights))
+    # beam = Member( shapes[potentials[index][0]][:], 1, "W", l )
+    # beam.MrCalc(w2)
+    return potentials
 
-    #Where we left off
-    w2=(4*Mf)/(Mf**2+4*Ma**2+7*Mb**2+4*Mc**2)**.5 #need to get moment distribution
-    Mu = (w2*math.pi()/l)*(E*shapes[122][index]*G*shapes[129][index]+((math.pi()*E)/l)**2*shapes[122][index]*shapes[130][index])**.5
-
-    if Mu > 0.67*Mp:
-        Mr = 1.15*.9*Mp*(1-(0.28*Mp)/Mu)
-        if Mr > Mp:
-            Mr = Mp
-    else:
-        Mr = 0.9 * Mu
-
+## Start of code##
 print ("Welcome to the best design program ever")
 
 shapes = []
@@ -95,7 +108,7 @@ with open('../Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
         # Metric shape names @ column 82
         # Check excel file for referencing columns
 
-span = float(input("Span of your beam: "))
+span = float(input("Span of your beam (mm): "))
 #Tributary width of beam
 while True:
     conType = int(input("How is your beam connected?\n1. Simple\n2. Moment\n3. Cantilever\n4. Simple with Cantilever\n"))
@@ -107,7 +120,7 @@ while True:
 while True:
     t = input("Do you know the factored line load? Y/N: ")
     if t.upper() == "Y":
-        wf = float(input("Input the factored load: "))
+        wf = float(input("Input the factored load (kN/m): "))
         break
     elif t.upper() == "N":
         wf = loadCombos(  )
@@ -115,5 +128,21 @@ while True:
     else:
         print("Please choose either Y or N")
 
-(V, M) = shearMoment( wf, span, conType)
-sizeMember(V, M, shapes, wf, span)
+st = next(i for i in (range(len(shapes))) if shapes[i][0] == "W")
+en = next(i for i in reversed(range(len(shapes))) if shapes [i][0] == "W") - 1
+
+potentials = []
+w2, mDist = omega2(wf, span, conType)
+for i in range (st, en):
+    beam = Member(shapes[i][:], 1, "W", span) # Only designs W shapes for now
+    wf = wf + 1.25*beam.weight
+    potentials = ULS( mDist, w2, span, beam, i, potentials)
+
+weights = []
+for j in range(0, len(potentials)):
+    weights.append(potentials[j][1])
+index = weights.index(min(weights))
+beam = Member( shapes[potentials[index][0]][:], 1, "W", span )
+beam.MrCalc(w2)
+
+print(beam.name)
