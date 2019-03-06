@@ -23,6 +23,7 @@ class Member:
         self.Zx = float(properties[121])
         self.Zy = float(properties[125])
         self.Sx = float(properties[122])
+        self.Sy = float(properties[126])
         try:
             self.J = float(properties[131])*1000
         except:
@@ -48,8 +49,11 @@ class Member:
         self.section = section
         self.length = length
 
-    def CrCalc( self, input, lamb ):
-        if input[5] == "L":
+    def CrCalc( self, desInfo, lamb ):
+        Fy = 350
+        E = 200000
+        n = 1.34
+        if desInfo[5] == "L":
             if self.b/self.d < 1.7:
                 if 0 <= self.length/self.rx and self.length/self.rx <= 80:
                     klr = 72 + 0.75*self.length/self.rx
@@ -82,8 +86,8 @@ class Member:
             self.Mpx = self.Sx/1000*Fy
             self.Mpy = self.Sy/1000*Fy
 
-        if self.Mu > 0.67*self.Mp:
-            self.Mrx = 1.15*0.9*self.Mpx*(1-(0.28*self.Mp/self.Mu))
+        if self.Mu > 0.67*self.Mpx:
+            self.Mrx = 1.15*0.9*self.Mpx*(1-(0.28*self.Mpx/self.Mu))
             if self.Mrx > 0.9*self.Mpx:
                 self.Mrx = 0.9*self.Mpx
         else:

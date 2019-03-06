@@ -49,13 +49,16 @@ def colProperties ():
     return (l, P, Mx, My, k, section)
 
 # Choose a preliminary section for analysis
-def prelimSection ( input, shapes ):
-    st = next(i for i in (range(len(shapes))) if shapes[i][0] == input[5])
-    en = next(i for i in reversed(range(len(shapes))) if shapes[i][0] == input[5])-1
+def prelimSection ( shapes ):
+    st = next(i for i in (range(len(shapes))) if shapes[i][0] == desInfo[5])
+    en = next(i for i in reversed(range(len(shapes))) if shapes[i][0] == desInfo[5])-1
     return st, en
 
-def omega2 (input):
-    kappa = max([input[2], input[3]])/min([input[2], input[3]])
+def omega2 (desInfo):
+    try:
+        kappa = max([desInfo[2], desInfo[3]])/min([desInfo[2], desInfo[3]])
+    except:
+        kappa = max([desInfo[2], desInfo[3]]) # Should make code proceed as it should
     w2 = 1.75 + 1.05*kappa + 0.3*kappa**2
     if w2 > 2.5:
         w2 = 2.5
@@ -76,73 +79,61 @@ def UCalc (case, P, column, kappa):
         U1y = 1
 
     elif case == 3:
-       U1x = 1
-       U1y = 1
+        U1x = 1
+        U1y = 1
         
     return U1x, U1y
 
 # Iterate on prelimSection
 # Need to add cases for angle and channel members
-def ULS ( input, shapes, column ):
+def ULS ( desInfo, shapes, column ):
     Fy = 350
     E = 200000
     G = 77000
     n = 1.34
-    weights = []
-    kappa = max([input[2], input[3]])/min([input[2], input[3]])
+    efficiency = 0 
+    w2 = omega2(desInfo)
+    try:
+        kappa = max([desInfo[2], desInfo[3]])/min([desInfo[2], desInfo[3]])
+    except:
+        kappa = max([desInfo[2], desInfo[3]]) # Should make code proceed as it should
     beta = 0.6+0.4*(column.k*column.length/column.ry)*math.sqrt(Fy/math.pi**2/E)
     if beta > 0.85:
         beta = 0.85
-        
-    column.CrCalc(input)
-    if input[2] > 0 or input[3] > 0:
+    lamb = 3    
+    column.CrCalc(desInfo, lamb)
+    if desInfo[2] > 0 or desInfo[3] > 0:
     # Capacity check a
-        column.CrCalc(input, 0)
+        column.CrCalc(desInfo, 0)
         column.MrCalc(w2)
-        U1x, U1y = UCalc(1, input[1], column, kappa)
-        efficiency = input[1]/column.Cr + (0.85*U1x*input[2])/(0.9*column.Mpx)+(beta*U1y*input[3])/(0.9*column.Mpy)
+        U1x, U1y = UCalc(1, desInfo[1], column, kappa)
+        efficiency = desInfo[1]/column.Cr + (0.85*U1x*desInfo[2])/(0.9*column.Mpx)+(beta*U1y*desInfo[3])/(0.9*column.Mpy)
         # start next loop before going thru rest of calcs
-        if efficiency >= 0.9:
-            raise Exception()
 
         # Capacity check b 
         tempk = column.k
         column.k = 1
-        column.CrCalc(input, 1)
-        U1x, U1y = UCalc(2, input[1], column, kappa)
-        efficiency = input[1]/column.Cr + (0.85*U1x*input[2])/(0.9*column.Mpx)+(beta*U1y*input[3])/(0.9*column.Mpy)
-        if efficiency >= 0.9:
-            raise Exception()
+        column.CrCalc(desInfo, 1)
+        U1x, U1y = UCalc(2, desInfo[1], column, kappa)
+        efficiency = desInfo[1]/column.Cr + (0.85*U1x*desInfo[2])/(0.9*column.Mpx)+(beta*U1y*desInfo[3])/(0.9*column.Mpy)
         
         # Capacity check c
         column.k = tempk
-        U1x, U1y = UCalc(3, input[1], column, kappa)
-        efficiency = input[1]/column.Cr + (0.85*U1x*input[2])/(column.Mrx)+(beta*U1y*input[3])/(0.9*column.Mpy)
-        if efficiency >= 0.9:
-            raise Exception()
+        U1x, U1y = UCalc(3, desInfo[1], column, kappa)
+        efficiency = desInfo[1]/column.Cr + (0.85*U1x*desInfo[2])/(column.Mrx)+(beta*U1y*desInfo[3])/(0.9*column.Mpy)
 
         # Capacity check d
-        efficiency = input[2]/column.Mrx + input[3]/column.Mry
-        if efficiency < 0.9:
-            potentials.append(column)
+        efficiency = desInfo[2]/column.Mrx + desInfo[3]/column.Mpy # Not sure if this is supposed to be Mpy
     else:
-        column.CrCalc(input)
-    # Final check for if column passes ULS
-    if  efficiency < 0.9:
-        potentials.append(column)
-
+        column.CrCalc(desInfo)
+        # Final check for if column passes ULS
+    return column, efficiency
 
 def SLS ( k, l, column, index ):
     klrs = [k*l/column.rx, k*l/column.ry]
     klr = max(klrs)
-
-    if klr < 200:
-        print("Passed SLS check!")
-        return True, skip
-    else:
-        print("Failed SLS check :(")
-        skip.append(index)
-        return False, skip
+    
+    return klr
 
 ### Main Body
 shapes = []
@@ -152,16 +143,30 @@ with open('../Assets/aisc-shapes-database-v15.csv', 'r') as steelCSV:
         # Metric shape names @ column 82
         # Check excel file for referencing columns
 
-[l, P, Mx, My, k, section] = colProperties()
+desInfo = colProperties() # [l,P,Mx,My,k,section]
 potentials = []
-st, en = prelimSection( [l, P, Mx, My, k, section], shapes )
+weights = []
+st, en = prelimSection( shapes )
 # Just check all members to see if they passed ULS and SLS cases
 for i in range (st, en):
-    column = Member ( shapes, k, section, l )
-    try:
-        index = ULS ( [l, P, Mx, My, k, section], shapes, column )
-        potentials = SLS ( k, l, column, index )
-    except:
+    column = Member ( shapes[i][:], desInfo[4], desInfo[5], desInfo[0] )
+
+    # Check ULS Failure
+    column, efficiency = ULS ( desInfo, shapes, column )
+    if efficiency < 0.3 or efficiency >= 0.9:
         continue
+
+    # Check SLS Failure
+    klr = SLS ( desInfo[4], desInfo[0], column, i )
+    if klr > 200:
+        continue
+    
+    potentials.append([i, column.weight])
+print(potentials)
+for j in range(0, len(potentials)):
+    weights.append(potentials[j][1])
+index = weights.index(min(weights))
+
+column = Member( shapes[potentials[index][0]][:], desInfo[4], desInfo[5], desInfo[0] )
 
 print(column.name)
