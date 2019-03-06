@@ -140,11 +140,15 @@ def ULSSimple ( input, shapes, st, en, skip ):
 # Won't select class 4 sections, but everything else is fine
 def SLSSimple ( section, column, index, skip ):
     column.ClassCalc(section)
+    klr = column.k * column.length / min([column.rx, column.ry])
     if column.secClass == 4:
         skip.append(index)
-        return False, skip
+        return False, skip, klr
     else:
-        return True, skip
+        if klr > 200:
+            return False, skip, klr
+        else:
+            return True, skip, klr
 
 # Designs beam columns, but only with point moments at the top of the column
 def ULSHard ( input, shapes, st, en, skip ):
@@ -196,7 +200,7 @@ if Mx == 0 and My == 0:
 
     while passed == False:
         column, index = ULSSimple ( [l, P, Mx, My, k, section], shapes, st, en, skip )
-        passed, skip = SLSSimple ( section, column, index, skip )
+        passed, skip, klr  = SLSSimple ( section, column, index, skip )
 
 else:
     while passed == False:
@@ -206,7 +210,7 @@ else:
 print(column.name)
 
 save = input("Save this column? ")
-if save.upper() == "Y":
+if save.upper() == "Y" or save.upper() == "":
     fileName = input("Name of this Column: ")
     file = "../Output/{}.tex".format(fileName)
     f = open(file, "w+")
@@ -221,20 +225,24 @@ if save.upper() == "Y":
                         Resulted in the design of a {5.name} class {5.secClass} steel column\\\\
                         \\textbf{{Resistance Calculation:}}\\\\
                         \\begin{{align*}}
-                        F_{{e}} =& \\frac{{\\pi^2 E}}{{(\\frac{{kl}}{{r}})^2}} && \\oint 13.3.1\\\\
+                        F_{{e}} =& \\frac{{\\pi^2 E}}{{(\\frac{{kl}}{{r}})^2}} && &\\oint 13.3.1\\\\
                         F_{{ex}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4} \\cdot {3} mm}}{{{5.rx:0.2f} mm}})^2}} && \\\\
                         F_{{ey}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4} \\cdot {3} mm}}{{{5.ry:0.2f} mm}})^2}} && \\\\
                         F_{{e}} =& min \\begin{{cases}}
                         F_{{ex}}\\\\
                         F_{{ey}}\\\\
-                        \\end{{cases}} = {5.Fe:0.2f} MPa && \\oint 13.3.1\\\\
-                        \\lambda =& \\sqrt{{\\frac{{F_{{y}}}}{{F_{{e}}}}}} && \\oint 13.3.1\\\\
+                        \\end{{cases}} = {5.Fe:0.2f} MPa && &\\oint 13.3.1\\\\
+                        \\lambda =& \\sqrt{{\\frac{{F_{{y}}}}{{F_{{e}}}}}} && &\\oint 13.3.1\\\\
                         \\lambda =& \\sqrt{{\\frac{{350 MPa}}{{{5.Fe:0.2f} MPa}}}} = {5.lamb:0.2f} &&\\\\
-                        C_{{r}} =& \\frac{{\\phi A F_{{y}}}}{{(1+\\lambda^{{2n}})^\\frac{{1}}{{n}}}} && \\oint 13.3.1\\\\
+                        C_{{r}} =& \\frac{{\\phi A F_{{y}}}}{{(1+\\lambda^{{2n}})^\\frac{{1}}{{n}}}} && &\\oint 13.3.1\\\\
                         C_{{r}} =& \\frac{{0.9 \\cdot {5.area} mm \\cdot 350 MPa}}{{(1+{5.lamb:0.2f}^{{2 \\cdot 1.34}})^\\frac{{1}}{{1.34}}}} &&\\\\
-                        C_{{r}} =& {5.Cr:0.0f} kN
+                        C_{{r}} =& {5.Cr:0.0f} kN\\\\
+                        \\text{{SLS Check:}}\\\\
+                        \\frac{{kl}}{{r}} \\leq& 200 && &\\oint 10.4\\\\
+                        =& \\frac{{{5.k}\\cdot {5.length:0.2f}}}{{{5.ry:0.2f}}}&&\\\\
+                        =& {7:0.2f}
                         \\end{{align*}}
-                        \\end{{document}}""".format(P, Mx, My, l, k, column, fileName)
+                        \\end{{document}}""".format(P, Mx, My, l, k, column, fileName, klr)
     f.write(output)
     f.close()
 else:
