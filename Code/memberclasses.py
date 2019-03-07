@@ -4,6 +4,7 @@ class Member:
         self.name = properties[84]
         self.weight = float(properties[86]) * 9.81/1000
         self.area = float(properties[87])
+        self.section = section
         self.secClass = 0
         try:
             self.d = float(properties[88])
@@ -22,11 +23,11 @@ class Member:
         except:
             pass
         try:
-            self.bw = float(properties[114])
+            self.bt = float(properties[114])
         except:
             pass
         try:
-            self.ht = float(properties[117])
+            self.hw = float(properties[117])
         except:
             pass
         try:
@@ -63,21 +64,28 @@ class Member:
         self.k = k
         self.section = section
         self.length = length
+        self.Fe = 0
+        self.lamb = 1
 
-    def ClassCalc( self, section ):
-        if section == "W":
-            class1 = 145/math.sqrt(350)
-            class2 = 170/math.sqrt(350)
-            class3 = 200/math.sqrt(350)
-            if self.bw < class1 and self.ht < class1:
+    ##** Using wrong criterea for either web or flange check**
+    def ClassCalc( self ):
+        if self.section == "W":
+            class1w = 1100/math.sqrt(350)
+            class2w = 1700/math.sqrt(350)
+            class3w = 670/math.sqrt(350)
+            class1f = 145/math.sqrt(350)
+            class2f = 170/math.sqrt(350)
+            class3f = 200/math.sqrt(350)
+            if self.bt < class1f and self.hw < class1w:
                 self.secClass = 1
-            elif self.bw < class2 and self.ht < class2:
+            elif self.bt < class2f and self.hw < class2w:
                 self.secClass = 2
-            elif self.bw < class3 and self.ht < class3:
+            elif self.bt < class3f and self.hw < class3w:
                 self.secClass = 3
             else:
                 self.secClass = 4
-        elif section == "HSS":
+
+        elif self.section == "HSS":
             class1 = 420/math.sqrt(350)
             class2 = 525/math.sqrt(350)
             class3 = 670/math.sqrt(350)
@@ -95,6 +103,9 @@ class Member:
         Fy = 350
         E = 200000
         n = 1.34
+        self.lamb = lamb
+        self.ClassCalc()
+
         if desInfo[5] == "L":
             if self.b/self.d < 1.7:
                 if 0 <= self.length/self.rx and self.length/self.rx <= 80:
@@ -105,14 +116,14 @@ class Member:
                         klr = 200
             else: # Gotta do something here
                 print("Reference CSA S16-14 $13.3.3.4 for additional design, design is just wack")
-            Fe = (math.pi**2*E)/(klr)**2
+            self.Fe = (math.pi**2*E)/(klr)**2
         else:
             Fex = (math.pi**2*E)/(((self.k*self.length)/self.rx)**2)
             Fey = (math.pi**2*E)/(((self.k*self.length)/self.ry)**2)
             F = [Fex, Fey]
-            Fe = min(F)
-        if lamb != 0:
-            lamb = math.sqrt(Fy/Fe)
+            self.Fe = min(F)
+        if self.lamb != 0:
+            self.lamb = math.sqrt(Fy/self.Fe)
         self.Cr = (0.9*self.area*Fy)/((1+lamb**(2*n))**(1/n))/1000
 
     def MrCalc( self, w2 ):

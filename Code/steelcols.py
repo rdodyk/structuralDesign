@@ -102,6 +102,8 @@ def ULS ( desInfo, shapes, column ):
         beta = 0.85
     lamb = 3    
     column.CrCalc(desInfo, lamb)
+
+    # Checks to see if moments are applied to column
     if desInfo[2] > 0 or desInfo[3] > 0:
     # Capacity check a
         column.CrCalc(desInfo, 0)
@@ -125,8 +127,10 @@ def ULS ( desInfo, shapes, column ):
         # Capacity check d
         efficiency = desInfo[2]/column.Mrx + desInfo[3]/column.Mpy # Not sure if this is supposed to be Mpy
     else:
-        column.CrCalc(desInfo)
+        column.CrCalc(desInfo, 1)
         # Final check for if column passes ULS
+        efficiency = desInfo[1]/column.Cr
+
     return column, efficiency
 
 def SLS ( k, l, column, index ):
@@ -153,16 +157,19 @@ for i in range (st, en):
 
     # Check ULS Failure
     column, efficiency = ULS ( desInfo, shapes, column )
-    if efficiency < 0.3 or efficiency >= 0.9:
-        continue
-
     # Check SLS Failure
     klr = SLS ( desInfo[4], desInfo[0], column, i )
-    if klr > 200:
+
+    # Go through checks to see if member passes
+    if efficiency < 0.5 or efficiency >= 0.9:
         continue
+    elif column.secClass == 4:
+        continue
+    elif klr > 200:
+        continue
+    else:
+        potentials.append([i, column.weight])
     
-    potentials.append([i, column.weight])
-print(potentials)
 for j in range(0, len(potentials)):
     weights.append(potentials[j][1])
 index = weights.index(min(weights))
@@ -181,30 +188,30 @@ if save.upper() == "Y" or save.upper() == "":
     output = """ \\documentclass{{article}}\n\n
                         \\usepackage{{amsmath}}\n\n
                         \\begin{{document}}
-                        Factored Loads for {6}:\\\\
-                        Axial Compression: {0} kN, Mx: {1} kN$\\cdot$m, My: {2} kN$\\cdot$m\\\\
-                        Length: {3} mm, k: {4}\\\\
-                        Resulted in the design of a {5.name} class {5.secClass} steel column\\\\
+                        Factored Loads for {2}:\\\\
+                        Axial Compression: {0[1]} kN, Mx: {0[2]} kN$\\cdot$m, My: {0[3]} kN$\\cdot$m\\\\
+                        Length: {1.length} mm, k: {1.k}\\\\
+                        Resulted in the design of a {1.name} class {1.secClass} steel column\\\\
                         \\textbf{{Resistance Calculation:}}\\\\
                         \\begin{{align*}}
                         F_{{e}} =& \\frac{{\\pi^2 E}}{{(\\frac{{kl}}{{r}})^2}} && &\\oint 13.3.1\\\\
-                        F_{{ex}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4} \\cdot {3} mm}}{{{5.rx:0.2f} mm}})^2}} && \\\\
-                        F_{{ey}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{4} \\cdot {3} mm}}{{{5.ry:0.2f} mm}})^2}} && \\\\
+                        F_{{ex}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{1.k} \\cdot {1.length} mm}}{{{1.rx:0.2f} mm}})^2}} && \\\\
+                        F_{{ey}} =& \\frac{{\\pi^2 E}}{{(\\frac{{{1.k} \\cdot {1.length} mm}}{{{1.ry:0.2f} mm}})^2}} && \\\\
                         F_{{e}} =& min \\begin{{cases}}
                         F_{{ex}}\\\\
                         F_{{ey}}\\\\
-                        \\end{{cases}} = {5.Fe:0.2f} MPa && &\\oint 13.3.1\\\\
+                        \\end{{cases}} = {1.Fe:0.2f} MPa && &\\oint 13.3.1\\\\
                         \\lambda =& \\sqrt{{\\frac{{F_{{y}}}}{{F_{{e}}}}}} && &\\oint 13.3.1\\\\
-                        \\lambda =& \\sqrt{{\\frac{{350 MPa}}{{{5.Fe:0.2f} MPa}}}} = {5.lamb:0.2f} &&\\\\
+                        \\lambda =& \\sqrt{{\\frac{{350 MPa}}{{{1.Fe:0.2f} MPa}}}} = {1.lamb:0.2f} &&\\\\
                         C_{{r}} =& \\frac{{\\phi A F_{{y}}}}{{(1+\\lambda^{{2n}})^\\frac{{1}}{{n}}}} && &\\oint 13.3.1\\\\
-                        C_{{r}} =& \\frac{{0.9 \\cdot {5.area} mm \\cdot 350 MPa}}{{(1+{5.lamb:0.2f}^{{2 \\cdot 1.34}})^\\frac{{1}}{{1.34}}}} &&\\\\
-                        C_{{r}} =& {5.Cr:0.0f} kN\\\\
+                        C_{{r}} =& \\frac{{0.9 \\cdot {1.area} mm \\cdot 350 MPa}}{{(1+{1.lamb:0.2f}^{{2 \\cdot 1.34}})^\\frac{{1}}{{1.34}}}} &&\\\\
+                        C_{{r}} =& {1.Cr:0.0f} kN\\\\
                         \\text{{SLS Check:}}\\\\
                         \\frac{{kl}}{{r}} \\leq& 200 && &\\oint 10.4\\\\
-                        =& \\frac{{{5.k}\\cdot {5.length:0.2f}}}{{{5.ry:0.2f}}}&&\\\\
-                        =& {7:0.2f}
+                        =& \\frac{{{1.k}\\cdot {1.length:0.2f}}}{{{1.ry:0.2f}}}&&\\\\
+                        =& {3:0.2f}
                         \\end{{align*}}
-                        \\end{{document}}""".format(P, Mx, My, l, k, column, fileName, klr)
+                        \\end{{document}}""".format(desInfo, column, fileName, klr)
     f.write(output)
     f.close()
 else:
