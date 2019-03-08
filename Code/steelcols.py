@@ -52,6 +52,9 @@ def colProperties ():
 def prelimSection ( shapes ):
     st = next(i for i in (range(len(shapes))) if shapes[i][0] == desInfo[5])
     en = next(i for i in reversed(range(len(shapes))) if shapes[i][0] == desInfo[5])-1
+    if desInfo[5] == "HSS":
+        st = 1914
+
     return st, en
 
 def omega2 (desInfo):
@@ -176,6 +179,7 @@ index = weights.index(min(weights))
 
 column = Member( shapes[potentials[index][0]][:], desInfo[4], desInfo[5], desInfo[0] )
 
+column.ClassCalc()
 print(column.name)
 
 save = input("Save this column? ")

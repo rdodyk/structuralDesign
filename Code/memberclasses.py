@@ -23,15 +23,14 @@ class Member:
         except:
             pass
         try:
-            self.bt = float(properties[114])
-        except:
-            pass
-        try:
             self.hw = float(properties[117])
         except:
             pass
         try:
-            self.b = float(properties[96])
+            if self.section == "HSS":
+                self.b = float(properties[92]) 
+            else:
+                self.b = float(properties[96])
         except:
             pass
         self.Ix = float(properties[120])*1000000
@@ -76,25 +75,25 @@ class Member:
             class1f = 145/math.sqrt(350)
             class2f = 170/math.sqrt(350)
             class3f = 200/math.sqrt(350)
-            if self.bt < class1f and self.hw < class1w:
+            if self.bw < class1f and self.ht < class1w:
                 self.secClass = 1
-            elif self.bt < class2f and self.hw < class2w:
+            elif self.bw < class2f and self.ht < class2w:
                 self.secClass = 2
-            elif self.bt < class3f and self.hw < class3w:
+            elif self.bw < class3f and self.ht < class3w:
                 self.secClass = 3
             else:
                 self.secClass = 4
 
         elif self.section == "HSS":
-            class1 = 420/math.sqrt(350)
-            class2 = 525/math.sqrt(350)
-            class3 = 670/math.sqrt(350)
+            class1h = 420/math.sqrt(350)
+            class2h = 525/math.sqrt(350)
+            class3h = 670/math.sqrt(350)
             bt = self.b/self.tnom
-            if bt < class1:
+            if bt < class1h:
                 self.secClass = 1
-            elif bt < class2:
+            elif bt < class2h:
                 self.secClass = 2
-            elif bt < class3:
+            elif bt < class3h:
                 self.secClass = 3
             else:
                 self.secClass = 4
