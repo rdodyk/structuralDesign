@@ -171,15 +171,15 @@ for i in range (st, en):
     elif klr > 200:
         continue
     else:
+        print(column.name, column.Cr)
         potentials.append([i, column.weight])
     
 for j in range(0, len(potentials)):
     weights.append(potentials[j][1])
 index = weights.index(min(weights))
-
 column = Member( shapes[potentials[index][0]][:], desInfo[4], desInfo[5], desInfo[0] )
 
-column.ClassCalc()
+column, efficiency = ULS(desInfo, shapes, column) 
 print(column.name)
 
 save = input("Save this column? ")
