@@ -144,4 +144,3 @@ class Member:
                 self.Mrx = 0.9*self.Mpx
         else:
             self.Mrx = 0.9 * self.Mu
-

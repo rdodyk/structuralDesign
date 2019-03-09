@@ -31,7 +31,7 @@ def loadCombos(  ):
     return (max(factoredLoads))
 
 #All uniformly distributed loads
-def shearMoment( wf, l, x, connection ):
+def shearMoment( wf, l, a, x, connection ):
     l = l/1000
     x = x/1000
     if connection == 1: #Simple connection
@@ -59,29 +59,29 @@ def shearMoment( wf, l, x, connection ):
             vEq = wf*x
             mEq = wf*x**2/2
     elif connection == 4: #Simple with cantilever
-        a = float(input("Cantilever Length: "))
         # vMax = (wf*(l**2-a**2))/(2*l)
         if x == -0.001:
             m1 = wf/(8*l**2)*(l+a)**2*(l-a)**2
             m2 = wf*a**2/2
-            mMax = max([m1, m2])
+            mEq = max([m1, m2])
         else:
             if x < l - a:
                 vEq = wf/(2*l)*(l**2-a**2)-wf*x
-                mEq = wf*x/(2*l)*(l^2-a^2-x*l)
+                mEq = wf*x/(2*l)*(l**2-a**2-x*l)
             else:
                 vEq = wf*(a-(x-(l-a)))
                 mEq = wf/2*(a-(x-(l-a)))**2
     return mEq
 
-def omega2(wf, l, connection):
-    mMax = abs(shearMoment(wf, l, -1, connection))
-    Ma = abs(shearMoment(wf, l, l/4, connection))
-    Mb = abs(shearMoment(wf, l, l/2, connection))
-    Mc = abs(shearMoment(wf, l, 3*l/4, connection))
+def omega2(wf, a, l, connection):
+    mMax = abs(shearMoment(wf, l, a, -1, connection))/10000000000
+    Ma = abs(shearMoment(wf, l, a, l/4, connection))/10000000000
+    Mb = abs(shearMoment(wf, l, a, l/2, connection))/10000000000
+    Mc = abs(shearMoment(wf, l, a, 3*l/4, connection))/10000000000
     w2=(4*mMax)/(mMax**2+4*Ma**2+7*Mb**2+4*Mc**2)**.5
     if w2 > 2.5:
         w2 = 2.5
+    print("Maximum moment is: ", mMax, "kN-m")
     return w2, [mMax, Ma, Mb, Mc]
 
 def ULS(mDist, w2, l, beam, i, potentials):
@@ -112,6 +112,8 @@ span = float(input("Span of your beam (mm): "))
 #Tributary width of beam
 while True:
     conType = int(input("How is your beam connected?\n1. Simple\n2. Moment\n3. Cantilever\n4. Simple with Cantilever\n"))
+    if conType == 4:
+        a = float(input("Cantilever Length (mm): "))
     if conType in [1, 2, 3, 4]:
         break
     else:
@@ -132,7 +134,7 @@ st = next(i for i in (range(len(shapes))) if shapes[i][0] == "W")
 en = next(i for i in reversed(range(len(shapes))) if shapes [i][0] == "W") - 1
 
 potentials = []
-w2, mDist = omega2(wf, span, conType)
+w2, mDist = omega2(wf, a,  span, conType)
 for i in range (st, en):
     beam = Member(shapes[i][:], 1, "W", span) # Only designs W shapes for now
     wf = wf + 1.25*beam.weight
@@ -146,3 +148,5 @@ beam = Member( shapes[potentials[index][0]][:], 1, "W", span )
 beam.MrCalc(w2)
 
 print(beam.name)
+print("Moment Resistance: ", beam.Mrx, "kN-m")
+print("Omega 2: ", w2)
