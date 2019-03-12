@@ -166,21 +166,19 @@ def mainloop(desInfo, shapes):
         elif klr > 200:
             continue
         else:
-            print(column.name, column.Cr)
-            potentials.append([i, column.weight])
-        
+            potentials.append([i, column.weight, column.name, column.Cr])
     for j in range(0, len(potentials)):
         weights.append(potentials[j][1])
     index = weights.index(min(weights))
     column = Member( shapes[potentials[index][0]][:], desInfo[4], desInfo[5], desInfo[0] )
 
     column, efficiency = ULS(desInfo, shapes, column) 
-    print(column.name, column.Cr)
-
+    klr = column.k*column.length/column.ry #Could be wrong for L shapes
     try:
         fileName = desInfo[6]
         writeFile(fileName, column, klr)
     except:
+        print("Designed ", column.name, ", Cr = ", column.Cr)
         save = input("Save this column? ")
         if save.upper() == "Y" or save.upper() == "":
             fileName = input("Name of this Column: ")
