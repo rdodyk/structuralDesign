@@ -28,7 +28,7 @@ def loadCombos(  ):
         elif i==3:
             factoredLoads.append(1.25*loads[0]+1.4*loads[3]+0.5*max([loads[1], loads[2]]))
 
-    return (max(factoredLoads))
+    return (max(factoredLoads)), loads[0], loads[1]
 
 #All uniformly distributed loads
 def shearMoment( wf, l, a, x, connection ):
@@ -85,18 +85,21 @@ def omega2(wf, a, l, connection):
     return w2, [mMax, Ma, Mb, Mc]
 
 def ULS(mDist, w2, l, beam, i, potentials):
-    weights = []
 
     beam.MrCalc(w2)
-    if beam.Mrx > mDist[0]:
-        potentials.append([i, beam.weight])
-
+    efficiency = mDist[0]/beam.Mrx
     # for j in range(0, len(potentials)):
     #     weights.append(potentials[j][1])
     # index = weights.index(min(weights))
     # beam = Member( shapes[potentials[index][0]][:], 1, "W", l )
     # beam.MrCalc(w2)
-    return potentials
+    return efficiency
+
+def SLS(wf, beam, wd, wl ):
+    deltaDead = (5*wd*beam.length**4)/(384*E*beam.Ix)
+    deltaLive = (5*wl*beam.length**4)/(384*E*beam.Ix)
+    
+    return deltaDead, deltaLive
 
 ## Start of code##
 print ("Welcome to the best design program ever")
@@ -123,9 +126,11 @@ while True:
     t = input("Do you know the factored line load? Y/N: ")
     if t.upper() == "Y":
         wf = float(input("Input the factored load (kN/m): "))
+        wd = float(input("Unfactored dead load (kN/m): "))
+        wl = float(input("Unfactored live load (kN/m): "))
         break
     elif t.upper() == "N":
-        wf = loadCombos(  )
+        wf, wd, wl = loadCombos(  )
         break
     else:
         print("Please choose either Y or N")
@@ -139,6 +144,13 @@ for i in range (st, en):
     beam = Member(shapes[i][:], 1, "W", span) # Only designs W shapes for now
     wf = wf + 1.25*beam.weight
     potentials = ULS( mDist, w2, span, beam, i, potentials)
+    deltaDead, deltaLive = SLS(wf, beam, wd, wl)
+    if efficiency < 0.5 or efficiency > 0.9:
+        continue
+    elif deltaDead > 1/360 and deltaLive > 1/300:
+        continue
+    else:
+        potentials.append([i, beam.weight])
 
 weights = []
 for j in range(0, len(potentials)):
