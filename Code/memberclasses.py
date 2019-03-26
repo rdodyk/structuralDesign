@@ -1,4 +1,5 @@
 import math
+# Assigns variables from CISC member sections file
 class Member:
     def __init__( self, properties, k, section, length ):
         self.name = properties[84]
@@ -66,7 +67,7 @@ class Member:
         self.Fe = 0
         self.lamb = 1
 
-    ##** Using wrong criterea for either web or flange check**
+    # Calculates class of section as per CISC code
     def ClassCalc( self ):
         if self.section == "W":
             class1w = 1100/math.sqrt(350)
@@ -98,6 +99,7 @@ class Member:
             else:
                 self.secClass = 4
 
+    # Calculates Cr for member
     def CrCalc( self, desInfo, lamb ):
         Fy = 350
         E = 200000
@@ -125,6 +127,7 @@ class Member:
             self.lamb = math.sqrt(Fy/self.Fe)
         self.Cr = (0.9*self.area*Fy)/((1+lamb**(2*n))**(1/n))/1000
 
+    # Calculates Mr for member
     def MrCalc( self, w2 ):
         E = 200000
         G = 77000
@@ -138,9 +141,16 @@ class Member:
             self.Mpx = self.Sx/1000*Fy
             self.Mpy = self.Sy/1000*Fy
 
-        if self.Mu > 0.67*self.Mpx:
-            self.Mrx = 1.15*0.9*self.Mpx*(1-(0.28*self.Mpx/self.Mu))
-            if self.Mrx > 0.9*self.Mpx:
-                self.Mrx = 0.9*self.Mpx
+        if self.section == "HSS":
+            self.Mrx = 0.9*self.Mpx
+            self.Mry = 0.9*self.Mpy
         else:
-            self.Mrx = 0.9 * self.Mu
+            if self.Mu > 0.67*self.Mpx:
+                self.Mrx = 1.15*0.9*self.Mpx*(1-(0.28*self.Mpx/self.Mu))
+                self.Mry = 0.9*self.Mpy
+                if self.Mrx > 0.9*self.Mpx:
+                    self.Mrx = 0.9*self.Mpx
+                    self.Mry = 0.9*self.Mpy
+            else:
+                self.Mrx = 0.9 * self.Mu
+                self.Mry = 0.9 * self.Mpy
